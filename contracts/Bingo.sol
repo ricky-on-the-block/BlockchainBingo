@@ -1,22 +1,25 @@
-//SPDX-License-Identifier: Unlicense
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-contract Bingo {
-    string private greeting;
+import "contracts/IBingo.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-    constructor(string memory _greeting) {
-        console.log("Deploying a Greeter with greeting:", _greeting);
-        greeting = _greeting;
+contract Bingo is IBingo, Ownable {
+    function joinGame() external {
+        console.log("joinGame");
     }
 
-    function greet() public view returns (string memory) {
-        return greeting;
+    function startGame() external onlyOwner {
+        console.log("startGame");
     }
 
-    function setGreeting(string memory _greeting) public {
-        console.log("Changing greeting from '%s' to '%s'", greeting, _greeting);
-        greeting = _greeting;
+    function drawNumber() external onlyOwner {
+        console.log("drawNumber");
+    }
+
+    function claimBingo() external {
+        console.log("claimBingo");
     }
 }
