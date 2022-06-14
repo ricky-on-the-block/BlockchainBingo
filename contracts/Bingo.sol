@@ -51,8 +51,12 @@ contract Bingo is IBingo, Ownable {
     uint8 constant N_OFFSET = 2 * 15;
     uint8 constant G_OFFSET = 3 * 15;
     uint8 constant O_OFFSET = 4 * 15;
+    // Upper Bound for Drawing Number
+    uint8 constant MAX_DRAWING_NUM = 75;
 
     uint constant public WEI_BUY_IN = 10 wei;
+
+    uint private incrementRN = 0;
 
     modifier onlyPlayers() {
         require(
@@ -63,17 +67,8 @@ contract Bingo is IBingo, Ownable {
     // CREATE A RANDOM NUMBER - GENERATE FUNCTION
     // -------------------------------------------------------------
     // Generate a random number (Can be replaced by Chainlink)
-    function rng(uint _input) private view returns(uint256){
-        console.log("rng()");
-        uint256 seed = uint256(keccak256(abi.encodePacked(
-            block.timestamp + block.difficulty +
-            ((uint256(keccak256(abi.encodePacked(block.coinbase)))) / (block.timestamp)) +
-            block.gaslimit + 
-            ((uint256(keccak256(abi.encodePacked(msg.sender)))) / (block.timestamp)) +
-            block.number + (_input * 1 minutes)
-        )));
-        uint number = (seed - ((seed / 100) * 100));
-        return number;
+    function rng() private returns(uint){
+        return uint(keccak256(abi.encodePacked(incrementRN++)));
     }
 
     // RANDOMLY GENERATE A SINGLE COLUMN OF THE PLAYER BOARD
@@ -90,15 +85,16 @@ contract Bingo is IBingo, Ownable {
         for(uint i = 0; i < column.length;) {
             // Mod 15 results in a uint in the range [0, 14], so add 1 to get to range [1, 15]
             // Then, multiply by the offset for the desired column
-            randomNum = uint8(((rng(i+1) % 15) + 1)) * columnOffset;
+            randomNum = uint8((rng() % 15) + 1 + columnOffset);
 
             // Only increment when we find a non-colliding random number for the current column
-            if(!self.gen.hasNumBeenUsed[randomNum]) {
-                console.log("numGenerated");
+            if(randomNum != 0 && !self.gen.hasNumBeenUsed[randomNum]) {
                 console.log(randomNum);
 
                 column[i].value = randomNum;
                 self.gen.hasNumBeenUsed[randomNum] = true;
+
+                // Manual increment
                 i++;
             }
         }
@@ -115,13 +111,15 @@ contract Bingo is IBingo, Ownable {
         generateColumn(self, self.gColumn, G_OFFSET);
         generateColumn(self, self.oColumn, O_OFFSET);
 
+        // Manually set N[2] => 0, because it is unused
+        self.nColumn[2].value = 0;
         self.gen.isInitialized = true;
     }
 
     function joinGame() external payable {
         console.log("joinGame()");
 
-        // require(msg.value >= WEI_BUY_IN, "Player has not met minimum buy in");
+        require(msg.value >= WEI_BUY_IN, "Player has not met the minimum buy in");
         require(!playerGameBoards[msg.sender].gen.isInitialized, "Player has already joined the game");
 
         generateBoard(playerGameBoards[msg.sender]);
@@ -141,7 +139,12 @@ contract Bingo is IBingo, Ownable {
 
     function drawNumber() external onlyOwner {
         console.log("drawNumber()");
-        emit NumberDrawn(0);
+
+        // Mod 75 results in a uint in the range [0, 74], so add 1 to get to range [1, 75]
+        uint8 randomNum = uint8(((rng() % MAX_DRAWING_NUM) + 1));
+        drawnNumbers.push(randomNum);
+
+        emit NumberDrawn(randomNum);
     }
 
     function claimBingo() external onlyPlayers {
