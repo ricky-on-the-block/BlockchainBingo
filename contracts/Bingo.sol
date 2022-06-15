@@ -20,6 +20,7 @@ contract Bingo is IBingo, Ownable {
         mapping(uint8 => bool) hasNumBeenUsed;
     }
 
+    // TODO: Serialize the board, hash it, and check collisions during generation
     struct PlayerBoard {
         BoardGeneration gen;
         BoardElement[5] bColumn;
@@ -27,6 +28,7 @@ contract Bingo is IBingo, Ownable {
         BoardElement[5] nColumn; // element 2 is the "free" element
         BoardElement[5] gColumn;
         BoardElement[5] oColumn;
+        string          boardStr;
     }
 
     mapping(address => PlayerBoard) private playerGameBoards;
@@ -97,6 +99,25 @@ contract Bingo is IBingo, Ownable {
         return append(boardStr, "\n");
     }
 
+    // -------------------------------------------------------------
+    function generateBoardStr()
+        private
+        view
+        returns (string memory boardStr)
+    {
+        console.log("getBoard()");
+
+        PlayerBoard storage gb = playerGameBoards[msg.sender];
+        boardStr = concatenateBoardStr(boardStr, gb.bColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.iColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.nColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.gColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.oColumn);
+
+        console.log(boardStr);
+        return boardStr;
+    }
+
     // RANDOMLY GENERATE A SINGLE COLUMN OF THE PLAYER BOARD
     // -------------------------------------------------------------
     function generateColumn(
@@ -154,7 +175,10 @@ contract Bingo is IBingo, Ownable {
 
         generateBoard(playerGameBoards[msg.sender]);
 
-        emit GameJoined(msg.sender);
+        // TODO: Revisit error conditions here
+        playerGameBoards[msg.sender].boardStr = generateBoardStr();
+
+        emit GameJoined(msg.sender, playerGameBoards[msg.sender].boardStr);
     }
 
     // -------------------------------------------------------------
@@ -165,22 +189,13 @@ contract Bingo is IBingo, Ownable {
 
     // -------------------------------------------------------------
     function getBoard()
-        external
+        public
         view
         onlyPlayers
         returns (string memory boardStr)
     {
         console.log("getBoard()");
-
-        PlayerBoard storage gb = playerGameBoards[msg.sender];
-        boardStr = concatenateBoardStr(boardStr, gb.bColumn);
-        boardStr = concatenateBoardStr(boardStr, gb.iColumn);
-        boardStr = concatenateBoardStr(boardStr, gb.nColumn);
-        boardStr = concatenateBoardStr(boardStr, gb.gColumn);
-        boardStr = concatenateBoardStr(boardStr, gb.oColumn);
-
-        console.log(boardStr);
-        return boardStr;
+        return playerGameBoards[msg.sender].boardStr;
     }
 
     // -------------------------------------------------------------
@@ -193,6 +208,9 @@ contract Bingo is IBingo, Ownable {
 
         emit NumberDrawn(randomNum);
     }
+    
+    // check every win condition pattern
+    // x, b, i, n, g, o, row, column, diagonal
 
     // -------------------------------------------------------------
     function claimBingo() external onlyPlayers {
