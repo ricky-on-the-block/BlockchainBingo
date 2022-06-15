@@ -26,20 +26,15 @@ describe("Bingo Unit Tests", function () {
     await expect(bingo.connect(signer).joinGame({ value: ethers.utils.parseUnits('10', 'wei')})).to.be.reverted;
   });
 
-  it("joinGame() should FAIL on duplicate calls from the same address", async function () {
+  it("getBoard() should return a valid string", async function () {
     let signer = (await ethers.getSigners())[2];
     await bingo.connect(signer).getBoard();
-
   });
 
-  // it("Should return the new greeting once it's changed", async function () {
-  //   expect(await bingo.greet()).to.equal("Hello, world!");
-
-  //   const setGreetingTx = await bingo.setGreeting("Hola, mundo!");
-
-  //   // wait until the transaction is mined
-  //   await setGreetingTx.wait();
-
-  //   expect(await bingo.greet()).to.equal("Hola, mundo!");
-  // });
+  it("drawNumber() should succeed", async function() {
+    let owner = (await ethers.getSigners())[0];
+    await bingo.connect(owner).startGame();
+    await bingo.connect(owner).drawNumber();
+    // console.log(await bingo.drawnNumbers());
+  });
 });
