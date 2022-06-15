@@ -5,6 +5,7 @@ import "hardhat/console.sol";
 
 import "contracts/IBingo.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 // uint8 constant B_MIN_VALUE = 1;
 // uint8 constant B_MAX_VALUE = 15;
@@ -18,6 +19,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // uint8 constant O_MAX_VALUE = 75;
 
 contract Bingo is IBingo, Ownable {
+
+    using Strings for uint256;
+
     // Long-term: move this to NFT generation. For now, a double mapping works
     struct BoardElement {
         uint8 value;
@@ -134,8 +138,29 @@ contract Bingo is IBingo, Ownable {
 
     function getBoard() external onlyPlayers returns(string memory boardStr) {
         console.log("getBoard()");
+        string memory txt;
+        uint elem;
+        PlayerBoard storage gb = playerGameBoards[msg.sender];
+        
+        for(uint i=0; i<gb.bColumn.length; i++){
+            elem = gb.bColumn[i].value;
+            // string.concat(txt, elem.toString(), " ");
+            txt = append(txt, elem.toString(), " ");
+        }
+        
+        // uint256 i = playerGameBoards[msg.sender].bColumn[0].value;
+        // string memory txt = i.toString();
+
+        console.log(txt);
+
         return "this is a board";
     }
+
+    function append(string memory a, string memory b, string memory c) internal pure returns (string memory) {
+
+    return string(abi.encodePacked(a, b, c));
+
+}
 
     function drawNumber() external onlyOwner {
         console.log("drawNumber()");
