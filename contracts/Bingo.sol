@@ -7,21 +7,9 @@ import "contracts/IBingo.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-// uint8 constant B_MIN_VALUE = 1;
-// uint8 constant B_MAX_VALUE = 15;
-// uint8 constant I_MIN_VALUE = 16;
-// uint8 constant I_MAX_VALUE = 30;
-// uint8 constant N_MIN_VALUE = 31;
-// uint8 constant N_MAX_VALUE = 45;
-// uint8 constant G_MIN_VALUE = 46;
-// uint8 constant G_MAX_VALUE = 60;
-// uint8 constant O_MIN_VALUE = 61;
-// uint8 constant O_MAX_VALUE = 75;
-
 contract Bingo is IBingo, Ownable {
     using Strings for uint256;
 
-    // Long-term: move this to NFT generation. For now, a double mapping works
     struct BoardElement {
         uint8 value;
         bool hasBeenDrawn;
@@ -44,17 +32,12 @@ contract Bingo is IBingo, Ownable {
     mapping(address => PlayerBoard) private playerGameBoards;
     uint8[] public drawnNumbers;
 
-    // What are the large operations I must do?
-    // 1. Generate the board according to bingo rules (number ranges for each column)
-    // 2. On claimBingo, efficiently check the player board for the win condition
-
     // Per the Standard US Bingo Rules
     uint8 constant B_OFFSET = 0 * 15;
     uint8 constant I_OFFSET = 1 * 15;
     uint8 constant N_OFFSET = 2 * 15;
     uint8 constant G_OFFSET = 3 * 15;
     uint8 constant O_OFFSET = 4 * 15;
-    // Upper Bound for Drawing Number
     uint8 constant MAX_DRAWING_NUM = 75;
 
     uint256 public constant WEI_BUY_IN = 10 wei;
@@ -74,6 +57,44 @@ contract Bingo is IBingo, Ownable {
     // Generate a random number (Can be replaced by Chainlink)
     function rng() private returns (uint256) {
         return uint256(keccak256(abi.encodePacked(incrementRN++)));
+    }
+
+    // -------------------------------------------------------------
+    function append(string memory a, string memory b)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(a, b));
+    }
+
+    // -------------------------------------------------------------
+    function append(
+        string memory a,
+        string memory b,
+        string memory c
+    ) internal pure returns (string memory) {
+        return string(abi.encodePacked(a, b, c));
+    }
+
+    // -------------------------------------------------------------
+    function concatenateBoardStr(
+        string memory boardStr,
+        BoardElement[5] storage boardColumn
+    ) private view returns (string memory) {
+        string memory elemStr;
+        for (uint256 i = 0; i < boardColumn.length; i++) {
+            // We know that only the middle element of the board will be 0, so we can check that
+            // as the condition
+            elemStr = boardColumn[i].value == 0
+                ? "--"
+                : boardColumn[i].value <= 9
+                ? append(" ", uint256(boardColumn[i].value).toString())
+                : uint256(boardColumn[i].value).toString();
+
+            boardStr = append(boardStr, elemStr, "  ");
+        }
+        return append(boardStr, "\n");
     }
 
     // RANDOMLY GENERATE A SINGLE COLUMN OF THE PLAYER BOARD
@@ -118,6 +139,7 @@ contract Bingo is IBingo, Ownable {
         self.gen.isInitialized = true;
     }
 
+    // -------------------------------------------------------------
     function joinGame() external payable {
         console.log("joinGame()");
 
@@ -135,27 +157,13 @@ contract Bingo is IBingo, Ownable {
         emit GameJoined(msg.sender);
     }
 
+    // -------------------------------------------------------------
     function startGame() external onlyOwner {
         console.log("startGame()");
         emit GameStarted(block.timestamp);
     }
 
-    function concatenateBoardStr(
-        string memory boardStr,
-        BoardElement[5] storage boardColumn,
-        bool isNColumn
-    ) private view returns (string memory) {
-        string memory elemStr;
-        for (uint256 i = 0; i < boardColumn.length; i++) {
-            elemStr = isNColumn && i == 2 ? "--" : boardColumn[i].value <= 9
-                ? append2(" ", uint256(boardColumn[i].value).toString())
-                : uint256(boardColumn[i].value).toString();
-
-            boardStr = append3(boardStr, elemStr, "  ");
-        }
-        return append2(boardStr, "\n");
-    }
-
+    // -------------------------------------------------------------
     function getBoard()
         external
         view
@@ -165,32 +173,17 @@ contract Bingo is IBingo, Ownable {
         console.log("getBoard()");
 
         PlayerBoard storage gb = playerGameBoards[msg.sender];
-        boardStr = concatenateBoardStr(boardStr, gb.bColumn, false);
-        boardStr = concatenateBoardStr(boardStr, gb.iColumn, false);
-        boardStr = concatenateBoardStr(boardStr, gb.nColumn, true);
-        boardStr = concatenateBoardStr(boardStr, gb.gColumn, false);
-        boardStr = concatenateBoardStr(boardStr, gb.oColumn, false);
+        boardStr = concatenateBoardStr(boardStr, gb.bColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.iColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.nColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.gColumn);
+        boardStr = concatenateBoardStr(boardStr, gb.oColumn);
 
         console.log(boardStr);
         return boardStr;
     }
 
-    function append2(string memory a, string memory b)
-        internal
-        pure
-        returns (string memory)
-    {
-        return string(abi.encodePacked(a, b));
-    }
-
-    function append3(
-        string memory a,
-        string memory b,
-        string memory c
-    ) internal pure returns (string memory) {
-        return string(abi.encodePacked(a, b, c));
-    }
-
+    // -------------------------------------------------------------
     function drawNumber() external onlyOwner {
         console.log("drawNumber()");
 
@@ -201,6 +194,7 @@ contract Bingo is IBingo, Ownable {
         emit NumberDrawn(randomNum);
     }
 
+    // -------------------------------------------------------------
     function claimBingo() external onlyPlayers {
         console.log("claimBingo()");
     }
