@@ -19,17 +19,16 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 // uint8 constant O_MAX_VALUE = 75;
 
 contract Bingo is IBingo, Ownable {
-
     using Strings for uint256;
 
     // Long-term: move this to NFT generation. For now, a double mapping works
     struct BoardElement {
         uint8 value;
-        bool  hasBeenDrawn;
+        bool hasBeenDrawn;
     }
 
     struct BoardGeneration {
-        bool                   isInitialized;
+        bool isInitialized;
         mapping(uint8 => bool) hasNumBeenUsed;
     }
 
@@ -37,7 +36,7 @@ contract Bingo is IBingo, Ownable {
         BoardGeneration gen;
         BoardElement[5] bColumn;
         BoardElement[5] iColumn;
-        BoardElement[5] nColumn;    // element 2 is the "free" element
+        BoardElement[5] nColumn; // element 2 is the "free" element
         BoardElement[5] gColumn;
         BoardElement[5] oColumn;
     }
@@ -58,21 +57,23 @@ contract Bingo is IBingo, Ownable {
     // Upper Bound for Drawing Number
     uint8 constant MAX_DRAWING_NUM = 75;
 
-    uint constant public WEI_BUY_IN = 10 wei;
+    uint256 public constant WEI_BUY_IN = 10 wei;
 
-    uint private incrementRN = 0;
+    uint256 private incrementRN = 0;
 
     modifier onlyPlayers() {
         require(
-            playerGameBoards[msg.sender].gen.isInitialized, "Player must have a board to call this function");
+            playerGameBoards[msg.sender].gen.isInitialized,
+            "Player must have a board to call this function"
+        );
         _;
     }
 
     // CREATE A RANDOM NUMBER - GENERATE FUNCTION
     // -------------------------------------------------------------
     // Generate a random number (Can be replaced by Chainlink)
-    function rng() private returns(uint){
-        return uint(keccak256(abi.encodePacked(incrementRN++)));
+    function rng() private returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(incrementRN++)));
     }
 
     // RANDOMLY GENERATE A SINGLE COLUMN OF THE PLAYER BOARD
@@ -80,21 +81,18 @@ contract Bingo is IBingo, Ownable {
     function generateColumn(
         PlayerBoard storage self,
         BoardElement[5] storage column,
-        uint8 columnOffset)
-        private
-    {
+        uint8 columnOffset
+    ) private {
         console.log("generateColumn()");
 
         uint8 randomNum;
-        for(uint i = 0; i < column.length;) {
+        for (uint256 i = 0; i < column.length; ) {
             // Mod 15 results in a uint in the range [0, 14], so add 1 to get to range [1, 15]
             // Then, multiply by the offset for the desired column
             randomNum = uint8((rng() % 15) + 1 + columnOffset);
 
             // Only increment when we find a non-colliding random number for the current column
-            if(randomNum != 0 && !self.gen.hasNumBeenUsed[randomNum]) {
-                console.log(randomNum);
-
+            if (randomNum != 0 && !self.gen.hasNumBeenUsed[randomNum]) {
                 column[i].value = randomNum;
                 self.gen.hasNumBeenUsed[randomNum] = true;
 
@@ -123,8 +121,14 @@ contract Bingo is IBingo, Ownable {
     function joinGame() external payable {
         console.log("joinGame()");
 
-        require(msg.value >= WEI_BUY_IN, "Player has not met the minimum buy in");
-        require(!playerGameBoards[msg.sender].gen.isInitialized, "Player has already joined the game");
+        require(
+            msg.value >= WEI_BUY_IN,
+            "Player has not met the minimum buy in"
+        );
+        require(
+            !playerGameBoards[msg.sender].gen.isInitialized,
+            "Player has already joined the game"
+        );
 
         generateBoard(playerGameBoards[msg.sender]);
 
@@ -136,31 +140,56 @@ contract Bingo is IBingo, Ownable {
         emit GameStarted(block.timestamp);
     }
 
-    function getBoard() external onlyPlayers returns(string memory boardStr) {
-        console.log("getBoard()");
-        string memory txt;
-        uint elem;
-        PlayerBoard storage gb = playerGameBoards[msg.sender];
-        
-        for(uint i=0; i<gb.bColumn.length; i++){
-            elem = gb.bColumn[i].value;
-            // string.concat(txt, elem.toString(), " ");
-            txt = append(txt, elem.toString(), " ");
+    function concatenateBoardStr(
+        string memory boardStr,
+        BoardElement[5] storage boardColumn,
+        bool isNColumn
+    ) private view returns (string memory) {
+        string memory elemStr;
+        for (uint256 i = 0; i < boardColumn.length; i++) {
+            elemStr = isNColumn && i == 2 ? "--" : boardColumn[i].value <= 9
+                ? append2(" ", uint256(boardColumn[i].value).toString())
+                : uint256(boardColumn[i].value).toString();
+
+            boardStr = append3(boardStr, elemStr, "  ");
         }
-        
-        // uint256 i = playerGameBoards[msg.sender].bColumn[0].value;
-        // string memory txt = i.toString();
-
-        console.log(txt);
-
-        return "this is a board";
+        return append2(boardStr, "\n");
     }
 
-    function append(string memory a, string memory b, string memory c) internal pure returns (string memory) {
+    function getBoard()
+        external
+        view
+        onlyPlayers
+        returns (string memory boardStr)
+    {
+        console.log("getBoard()");
 
-    return string(abi.encodePacked(a, b, c));
+        PlayerBoard storage gb = playerGameBoards[msg.sender];
+        boardStr = concatenateBoardStr(boardStr, gb.bColumn, false);
+        boardStr = concatenateBoardStr(boardStr, gb.iColumn, false);
+        boardStr = concatenateBoardStr(boardStr, gb.nColumn, true);
+        boardStr = concatenateBoardStr(boardStr, gb.gColumn, false);
+        boardStr = concatenateBoardStr(boardStr, gb.oColumn, false);
 
-}
+        console.log(boardStr);
+        return boardStr;
+    }
+
+    function append2(string memory a, string memory b)
+        internal
+        pure
+        returns (string memory)
+    {
+        return string(abi.encodePacked(a, b));
+    }
+
+    function append3(
+        string memory a,
+        string memory b,
+        string memory c
+    ) internal pure returns (string memory) {
+        return string(abi.encodePacked(a, b, c));
+    }
 
     function drawNumber() external onlyOwner {
         console.log("drawNumber()");
@@ -175,5 +204,4 @@ contract Bingo is IBingo, Ownable {
     function claimBingo() external onlyPlayers {
         console.log("claimBingo()");
     }
-
 }
