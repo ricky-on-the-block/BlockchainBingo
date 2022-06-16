@@ -11,7 +11,7 @@ contract BingoGameFactory {
     using EnumerableSet for EnumerableSet.UintSet;
 
     uint256 public constant MIN_WEI_BUY_IN = 1;
-    uint256 public constant MIN_NUM_PLAYERS = 5;
+    uint8 public constant MIN_NUM_PLAYERS = 5;
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
 
     // We define an internal struct of properties to easily return an array of active GameProposals
@@ -19,8 +19,8 @@ contract BingoGameFactory {
     struct GameProposalProperties {
         uint256 gameUUID;
         uint256 weiBuyIn;
-        uint256 numPlayersRequired;
-        uint256 numPlayersSignedUp;
+        uint8 numPlayersRequired;
+        uint8 numPlayersSignedUp;
     }
 
     struct GameProposal {
@@ -40,7 +40,7 @@ contract BingoGameFactory {
     event GameProposed(
         uint256 gameUUID,
         uint256 weiBuyIn,
-        uint256 numPlayersRequired
+        uint8 numPlayersRequired
     );
     event GameCreated(
         uint256 gameUUID,
@@ -54,7 +54,7 @@ contract BingoGameFactory {
     // ...
     function createGameProposal(
         uint256 weiBuyIn,
-        uint256 numPlayersRequired,
+        uint8 numPlayersRequired,
         uint8 numCardsDesired
     ) external payable {
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
@@ -139,7 +139,8 @@ contract BingoGameFactory {
         gameProposalProperties = new GameProposalProperties[](len);
 
         for (uint256 i = 0; i < len; i++) {
-            gameProposalProperties[i] = gameProposals[activeGameUUIDs.at(i)].properties;
+            gameProposalProperties[i] = gameProposals[activeGameUUIDs.at(i)]
+                .properties;
         }
     }
 
