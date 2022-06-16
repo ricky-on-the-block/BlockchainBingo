@@ -15,9 +15,7 @@ interface IBingo {
 
     function startGame() external;
 
-    function getBoard() external returns (string memory boardStr);
-
     function drawNumber() external;
 
-    function claimBingo() external returns (bool isBingo);
+    function claimBingo(uint256 tokenId) external returns (bool isBingo);
 }
