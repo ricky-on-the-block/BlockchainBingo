@@ -14,11 +14,14 @@ contract BingoGameFactory {
     uint8 public constant MIN_NUM_PLAYERS = 5;
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
 
+    address public bingoGame;
+
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
     struct GameProposalProperties {
         uint256 gameUUID;
         uint256 weiBuyIn;
+        uint256 totalCardCount;
         uint8 numPlayersRequired;
         uint8 numPlayersSignedUp;
     }
@@ -45,10 +48,13 @@ contract BingoGameFactory {
     event GameCreated(
         uint256 gameUUID,
         address bingoGameContract,
-        uint256 numPlayers
+        uint256 numPlayers,
+        uint256 jackpot
     );
 
-    constructor() {}
+    constructor(address _bingoGame) {
+        bingoGame = _bingoGame;
+    }
 
     // External functions
     // ...
@@ -80,6 +86,7 @@ contract BingoGameFactory {
         gameProposal.properties.numPlayersRequired = numPlayersRequired;
         gameProposal.properties.numPlayersSignedUp = 1; // creation only has 1 player
         gameProposal.playersCardCount[msg.sender] = numCardsDesired;
+        gameProposal.properties.totalCardCount = numCardsDesired;
 
         // Add the newly created gameProposal to the activeGameUUIDs set
         activeGameUUIDs.add(gameProposal.properties.gameUUID);
@@ -118,14 +125,29 @@ contract BingoGameFactory {
             ? 1
             : 0;
         gameProposal.playersCardCount[msg.sender] += numCardsDesired;
+        gameProposal.properties.totalCardCount += numCardsDesired;
 
         if (
             gameProposal.properties.numPlayersSignedUp >=
             gameProposal.properties.numPlayersRequired
         ) {
-            // TODO: Create a new BingoGame Contract!
-            // TODO: Emit GameCreated
-            // TODO: Remove gameProposal from activeGameUUIDs
+            uint256 jackpot = gameProposal.properties.weiBuyIn *
+                gameProposal.properties.totalCardCount;
+            address deployedClone = Clones.cloneDeterministic(
+                bingoGame,
+                bytes32(gameUUID)
+            );
+            emit GameCreated(
+                gameUUID,
+                deployedClone,
+                gameProposal.properties.numPlayersSignedUp,
+                jackpot
+            );
+
+            activeGameUUIDs.remove(gameProposal.properties.gameUUID);
+
+            (bool sent, ) = deployedClone.call{value: msg.value}("");
+            require(sent, "Funding deployed clone failed");
         }
     }
 
