@@ -7,20 +7,18 @@ import "contracts/IBingo.sol";
 import "contracts/BingoBoardNFT.sol";
 
 contract BingoGame is IBingo, BingoBoardNFT {
-    enum GameState {
-        AwaitingPlayers,
-        Running,
-        Won
-    }
-    GameState private gameState = GameState.AwaitingPlayers;
-
     uint8[] private drawnNumbers;
     mapping(uint8 => bool) private numDrawn;
+    
     uint8 constant MIN_DRAWING_NUM = 1;
     uint8 constant MAX_DRAWING_NUM = 75;
+    uint256 constant TIME_INTERVAL_SEC = 30;
+    
+    uint256 private timeStampLastDraw;
 
-    uint256 public constant WEI_BUY_IN = 10 wei;
 
+
+    //TO DO: attach the balance of the owner to the GameUUID
     modifier onlyPlayers() {
         require(
             balanceOf(msg.sender) >= 1,
@@ -29,55 +27,10 @@ contract BingoGame is IBingo, BingoBoardNFT {
         _;
     }
 
-    modifier inGameState(GameState _gameState) {
-        require(
-            gameState == _gameState,
-            "This function can not be called in this game state"
-        );
-        _;
-    }
-
     // -------------------------------------------------------------
-    function joinGame()
-        external
-        payable
-        inGameState(GameState.AwaitingPlayers)
-    {
-        console.log("joinGame()");
-
-        require(
-            msg.value >= WEI_BUY_IN,
-            "Player has not met the minimum buy in"
-        );
-        require(
-            balanceOf(msg.sender) == 0,
-            "Player has already joined the game"
-        );
-
-        uint256 mintedTokenId = safeMint(msg.sender);
-        emit GameJoined(msg.sender, getBoardAsString(mintedTokenId));
-    }
-
-    // -------------------------------------------------------------
-    function startGame()
-        external
-        onlyOwner
-        inGameState(GameState.AwaitingPlayers)
-    {
-        console.log("startGame()");
-
-        // Mark 0 as drawn for N2 efficient lookups during `claimBingo`
-        // Every player board has N2 set to 0 manually during generateBoard()
-        // No other board element can be set to 0, due to range-bounding the RNG
-        numDrawn[0] = true;
-        gameState = GameState.Running;
-
-        emit GameStarted(block.timestamp);
-    }
-
-    // -------------------------------------------------------------
-    function drawNumber() external onlyOwner inGameState(GameState.Running) {
+    function drawNumber() external {
         console.log("drawNumber()");
+        require(block.timestamp >= timeStampLastDraw + TIME_INTERVAL_SEC, "Not ready to draw a number yet");
         uint8 randomNum;
 
         // Loop the rng until we find a number that we haven't already drawn
@@ -94,6 +47,7 @@ contract BingoGame is IBingo, BingoBoardNFT {
         drawnNumbers.push(randomNum);
         numDrawn[randomNum] = true;
         emit NumberDrawn(randomNum);
+        timeStampLastDraw = block.timestamp;
     }
 
     // TODO: Make use of WinConditions in `claimBingo` to save gas
@@ -210,7 +164,6 @@ contract BingoGame is IBingo, BingoBoardNFT {
     function claimBingo(uint256 tokenId)
         external
         onlyPlayers
-        inGameState(GameState.Running)
         returns (bool isBingo)
     {
         console.log("claimBingo()");
@@ -228,8 +181,6 @@ contract BingoGame is IBingo, BingoBoardNFT {
             // Transfer winnings and announce the game has been won
             payable(msg.sender).transfer(awardAmount);
             emit GameWon(block.timestamp, msg.sender, awardAmount);
-
-            gameState = GameState.Won;
         }
 
         return isBingo;

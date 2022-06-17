@@ -3,6 +3,7 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
+import "contracts/IERC721Mintable.sol";
 import "contracts/BingoGame.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -15,6 +16,9 @@ contract BingoGameFactory {
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
 
     address public bingoGame;
+    IERC721Mintable public bingoBoardNFT;
+
+
 
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
@@ -52,8 +56,9 @@ contract BingoGameFactory {
         uint256 jackpot
     );
 
-    constructor(address _bingoGame) {
+    constructor(address _bingoGame, address _bingoBoardNFT) {
         bingoGame = _bingoGame;
+        bingoBoardNFT = IERC721Mintable(_bingoBoardNFT);
     }
 
     // External functions
@@ -87,6 +92,10 @@ contract BingoGameFactory {
         gameProposal.properties.numPlayersSignedUp = 1; // creation only has 1 player
         gameProposal.playersCardCount[msg.sender] = numCardsDesired;
         gameProposal.properties.totalCardCount = numCardsDesired;
+
+        for(uint i=0; i<numCardsDesired; i++){
+            bingoBoardNFT.safeMint(msg.sender);
+        }
 
         // Add the newly created gameProposal to the activeGameUUIDs set
         activeGameUUIDs.add(gameProposal.properties.gameUUID);
@@ -126,6 +135,10 @@ contract BingoGameFactory {
             : 0;
         gameProposal.playersCardCount[msg.sender] += numCardsDesired;
         gameProposal.properties.totalCardCount += numCardsDesired;
+     
+        for(uint i=0; i<numCardsDesired; i++){
+            bingoBoardNFT.safeMint(msg.sender);
+        }
 
         if (
             gameProposal.properties.numPlayersSignedUp >=

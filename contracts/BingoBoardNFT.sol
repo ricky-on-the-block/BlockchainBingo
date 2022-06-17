@@ -4,13 +4,16 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 import "contracts/SimpleRNG.sol";
+import "contracts/IERC721Mintable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract BingoBoardNFT is ERC721, ERC721Enumerable, Ownable, SimpleRNG {
-    uint256 private _tokenIdCounter;
+contract BingoBoardNFT is ERC721, ERC721Enumerable, Ownable, SimpleRNG, IERC721Mintable {
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIdCounter;
 
     struct BoardGeneration {
         bool isInitialized;
@@ -139,8 +142,8 @@ contract BingoBoardNFT is ERC721, ERC721Enumerable, Ownable, SimpleRNG {
     constructor() ERC721("BingoBoardNFT", "BINGOBOARD") {}
 
     function safeMint(address to) public onlyOwner returns (uint256) {
-        uint256 tokenId = _tokenIdCounter;
-        _tokenIdCounter++; // will revert if it runs out of IDs
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
         _safeMint(to, tokenId);
 
         // Now generate a board, and tie it to the tokenId
