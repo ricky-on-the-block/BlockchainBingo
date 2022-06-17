@@ -28,14 +28,17 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    function init(uint256 timeIntervalSec) onlyOwner public {
+    function init(uint256 timeIntervalSec) public onlyOwner {
         drawTimeIntervalSec = timeIntervalSec;
     }
 
     // -------------------------------------------------------------
     function drawNumber() external {
         console.log("drawNumber()");
-        require(block.timestamp >= lastDrawTimeStamp + drawTimeIntervalSec, "Not ready to draw a number yet");
+        require(
+            block.timestamp >= lastDrawTimeStamp + drawTimeIntervalSec,
+            "Not ready to draw a number yet"
+        );
         uint8 randomNum;
 
         // Loop the rng until we find a number that we haven't already drawn
@@ -94,11 +97,11 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
         // Check every row
         for (uint8 i = 0; i < 5; i++) {
             if (
-                drawnNumbers.contains(pb.bColumn[i]) &&
-                drawnNumbers.contains(pb.iColumn[i]) &&
-                drawnNumbers.contains(pb.nColumn[i]) &&
-                drawnNumbers.contains(pb.gColumn[i]) &&
-                drawnNumbers.contains(pb.oColumn[i])
+                drawnNumbers.contains(pb.data.bColumn[i]) &&
+                drawnNumbers.contains(pb.data.iColumn[i]) &&
+                drawnNumbers.contains(pb.data.nColumn[i]) &&
+                drawnNumbers.contains(pb.data.gColumn[i]) &&
+                drawnNumbers.contains(pb.data.oColumn[i])
             ) {
                 return true;
             }
@@ -130,19 +133,19 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
         view
         returns (bool)
     {
-        if (checkWinCondition5SeqCol(pb.bColumn)) {
+        if (checkWinCondition5SeqCol(pb.data.bColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.iColumn)) {
+        if (checkWinCondition5SeqCol(pb.data.iColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.nColumn)) {
+        if (checkWinCondition5SeqCol(pb.data.nColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.gColumn)) {
+        if (checkWinCondition5SeqCol(pb.data.gColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.oColumn)) {
+        if (checkWinCondition5SeqCol(pb.data.oColumn)) {
             return true;
         }
 
@@ -157,22 +160,22 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     {
         // Check negative slope diagonal first
         if (
-            drawnNumbers.contains(pb.bColumn[0]) &&
-            drawnNumbers.contains(pb.iColumn[1]) &&
-            drawnNumbers.contains(pb.nColumn[2]) &&
-            drawnNumbers.contains(pb.gColumn[3]) &&
-            drawnNumbers.contains(pb.oColumn[4])
+            drawnNumbers.contains(pb.data.bColumn[0]) &&
+            drawnNumbers.contains(pb.data.iColumn[1]) &&
+            drawnNumbers.contains(pb.data.nColumn[2]) &&
+            drawnNumbers.contains(pb.data.gColumn[3]) &&
+            drawnNumbers.contains(pb.data.oColumn[4])
         ) {
             return true;
         }
 
         // Then, check positive slope diagonal
         if (
-            drawnNumbers.contains(pb.bColumn[4]) &&
-            drawnNumbers.contains(pb.iColumn[3]) &&
-            drawnNumbers.contains(pb.nColumn[2]) &&
-            drawnNumbers.contains(pb.gColumn[1]) &&
-            drawnNumbers.contains(pb.oColumn[0])
+            drawnNumbers.contains(pb.data.bColumn[4]) &&
+            drawnNumbers.contains(pb.data.iColumn[3]) &&
+            drawnNumbers.contains(pb.data.nColumn[2]) &&
+            drawnNumbers.contains(pb.data.gColumn[1]) &&
+            drawnNumbers.contains(pb.data.oColumn[0])
         ) {
             return true;
         }

@@ -10,7 +10,10 @@ interface IBingoGame {
     );
 
     function init(uint256 timeIntervalSec) external;
+
     function drawNumber() external;
+
     function claimBingo(uint256 tokenId) external returns (bool isBingo);
-    function getDrawnNumbers() external view returns(uint8[] memory);
+
+    function getDrawnNumbers() external view returns (uint8[] memory);
 }

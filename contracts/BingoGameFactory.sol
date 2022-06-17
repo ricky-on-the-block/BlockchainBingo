@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-import "contracts/IERC721Mintable.sol";
+import "contracts/IBingoBoardNFTMintable.sol";
 import "contracts/IBingoGame.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -11,11 +11,11 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 contract BingoGameFactory {
     uint256 public constant MIN_WEI_BUY_IN = 1;
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
-    uint8   public constant MIN_NUM_PLAYERS = 5;
-    uint8   public constant MAX_TIME_INTERVAL_SEC = 60;
+    uint8 public constant MIN_NUM_PLAYERS = 5;
+    uint8 public constant MAX_TIME_INTERVAL_SEC = 60;
 
     IBingoGame public bingoGame;
-    IERC721Mintable public bingoBoardNFT;
+    IBingoBoardNFTMintable public bingoBoardNFT;
 
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
@@ -57,7 +57,7 @@ contract BingoGameFactory {
 
     constructor(address _bingoGame, address _bingoBoardNFT) {
         bingoGame = IBingoGame(_bingoGame);
-        bingoBoardNFT = IERC721Mintable(_bingoBoardNFT);
+        bingoBoardNFT = IBingoBoardNFTMintable(_bingoBoardNFT);
     }
 
     // External functions
@@ -69,7 +69,10 @@ contract BingoGameFactory {
         uint8 numCardsDesired
     ) external payable {
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
-        require(drawTimeIntervalSec <= MAX_TIME_INTERVAL_SEC, "drawTimeIntervalSec > MAX_TIME_INTERVAL_SEC");
+        require(
+            drawTimeIntervalSec <= MAX_TIME_INTERVAL_SEC,
+            "drawTimeIntervalSec > MAX_TIME_INTERVAL_SEC"
+        );
         require(
             numPlayersRequired >= MIN_NUM_PLAYERS,
             "MIN_NUM_PLAYERS not met"
@@ -95,8 +98,8 @@ contract BingoGameFactory {
         gp.playersCardCount[msg.sender] = numCardsDesired;
         gp.properties.totalCardCount = numCardsDesired;
 
-        for(uint i=0; i<numCardsDesired; i++){
-            bingoBoardNFT.safeMint(msg.sender);
+        for (uint256 i = 0; i < numCardsDesired; i++) {
+            bingoBoardNFT.safeMint(msg.sender, gp.properties.gameUUID);
         }
 
         // Add the newly created gameProposal to the activeGameUUIDs set
@@ -131,20 +134,18 @@ contract BingoGameFactory {
         );
 
         // Only increment numPlayersSignedUp if it's a new player
-        gp.properties.numPlayersSignedUp += gp
-            .playersCardCount[msg.sender] == 0
+        gp.properties.numPlayersSignedUp += gp.playersCardCount[msg.sender] == 0
             ? 1
             : 0;
         gp.playersCardCount[msg.sender] += numCardsDesired;
         gp.properties.totalCardCount += numCardsDesired;
-     
-        for(uint i=0; i<numCardsDesired; i++){
-            bingoBoardNFT.safeMint(msg.sender);
+
+        for (uint256 i = 0; i < numCardsDesired; i++) {
+            bingoBoardNFT.safeMint(msg.sender, gameUUID);
         }
 
         if (
-            gp.properties.numPlayersSignedUp >=
-            gp.properties.numPlayersRequired
+            gp.properties.numPlayersSignedUp >= gp.properties.numPlayersRequired
         ) {
             uint256 jackpot = gp.properties.weiBuyIn *
                 gp.properties.totalCardCount;

@@ -28,7 +28,6 @@ library EnumerableByteSet {
     struct Uint8Set {
         // Storage of set values
         uint8[] _values;
-
         // Position of the value in the `values` array, plus 1 because index 0
         // means a value is not in the set.
         mapping(uint8 => uint256) _indexes;
@@ -95,7 +94,11 @@ library EnumerableByteSet {
     /**
      * @dev Returns true if the value is in the set. O(1).
      */
-    function contains(Uint8Set storage set, uint8 value) internal view returns (bool) {
+    function contains(Uint8Set storage set, uint8 value)
+        internal
+        view
+        returns (bool)
+    {
         return set._indexes[value] != 0;
     }
 
@@ -116,7 +119,11 @@ library EnumerableByteSet {
      *
      * - `index` must be strictly less than {length}.
      */
-    function at(Uint8Set storage set, uint256 index) internal view returns (uint8) {
+    function at(Uint8Set storage set, uint256 index)
+        internal
+        view
+        returns (uint8)
+    {
         return set._values[index];
     }
 
@@ -128,7 +135,11 @@ library EnumerableByteSet {
      * this function has an unbounded cost, and using it as part of a state-changing function may render the function
      * uncallable if the set grows to a point where copying to memory consumes too much gas to fit in a block.
      */
-    function values(Uint8Set storage set) internal view returns (uint8[] memory) {
+    function values(Uint8Set storage set)
+        internal
+        view
+        returns (uint8[] memory)
+    {
         return set._values;
     }
 }
