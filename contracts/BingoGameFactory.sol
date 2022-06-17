@@ -4,21 +4,18 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 import "contracts/IERC721Mintable.sol";
-import "contracts/BingoGame.sol";
+import "contracts/IBingoGame.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BingoGameFactory {
-    using EnumerableSet for EnumerableSet.UintSet;
-
     uint256 public constant MIN_WEI_BUY_IN = 1;
-    uint8 public constant MIN_NUM_PLAYERS = 5;
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
+    uint8   public constant MIN_NUM_PLAYERS = 5;
+    uint8   public constant MAX_TIME_INTERVAL_SEC = 60;
 
-    address public bingoGame;
+    IBingoGame public bingoGame;
     IERC721Mintable public bingoBoardNFT;
-
-
 
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
@@ -26,6 +23,7 @@ contract BingoGameFactory {
         uint256 gameUUID;
         uint256 weiBuyIn;
         uint256 totalCardCount;
+        uint8 drawTimeIntervalSec;
         uint8 numPlayersRequired;
         uint8 numPlayersSignedUp;
     }
@@ -42,6 +40,7 @@ contract BingoGameFactory {
     mapping(uint256 => GameProposal) private gameProposals;
 
     // List of all games waiting to be started
+    using EnumerableSet for EnumerableSet.UintSet;
     EnumerableSet.UintSet private activeGameUUIDs;
 
     event GameProposed(
@@ -57,7 +56,7 @@ contract BingoGameFactory {
     );
 
     constructor(address _bingoGame, address _bingoBoardNFT) {
-        bingoGame = _bingoGame;
+        bingoGame = IBingoGame(_bingoGame);
         bingoBoardNFT = IERC721Mintable(_bingoBoardNFT);
     }
 
@@ -65,10 +64,12 @@ contract BingoGameFactory {
     // ...
     function createGameProposal(
         uint256 weiBuyIn,
+        uint8 drawTimeIntervalSec,
         uint8 numPlayersRequired,
         uint8 numCardsDesired
     ) external payable {
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
+        require(drawTimeIntervalSec <= MAX_TIME_INTERVAL_SEC, "drawTimeIntervalSec > MAX_TIME_INTERVAL_SEC");
         require(
             numPlayersRequired >= MIN_NUM_PLAYERS,
             "MIN_NUM_PLAYERS not met"
@@ -78,7 +79,7 @@ contract BingoGameFactory {
             "Value must be >= weiBuyIn * numCardsDesired"
         );
 
-        GameProposal storage gameProposal = gameProposals[gamesUUIDCounter];
+        GameProposal storage gp = gameProposals[gamesUUIDCounter];
 
         require(
             numCardsDesired <= MAX_CARDS_PER_PLAYERS,
@@ -86,24 +87,25 @@ contract BingoGameFactory {
         );
 
         // Initialize the GameProposal
-        gameProposal.properties.gameUUID = gamesUUIDCounter++;
-        gameProposal.properties.weiBuyIn = weiBuyIn;
-        gameProposal.properties.numPlayersRequired = numPlayersRequired;
-        gameProposal.properties.numPlayersSignedUp = 1; // creation only has 1 player
-        gameProposal.playersCardCount[msg.sender] = numCardsDesired;
-        gameProposal.properties.totalCardCount = numCardsDesired;
+        gp.properties.gameUUID = gamesUUIDCounter++;
+        gp.properties.weiBuyIn = weiBuyIn;
+        gp.properties.weiBuyIn = weiBuyIn;
+        gp.properties.drawTimeIntervalSec = drawTimeIntervalSec;
+        gp.properties.numPlayersSignedUp = 1; // creation only has 1 player
+        gp.playersCardCount[msg.sender] = numCardsDesired;
+        gp.properties.totalCardCount = numCardsDesired;
 
         for(uint i=0; i<numCardsDesired; i++){
             bingoBoardNFT.safeMint(msg.sender);
         }
 
         // Add the newly created gameProposal to the activeGameUUIDs set
-        activeGameUUIDs.add(gameProposal.properties.gameUUID);
+        activeGameUUIDs.add(gp.properties.gameUUID);
 
         emit GameProposed(
-            gameProposal.properties.gameUUID,
-            gameProposal.properties.weiBuyIn,
-            gameProposal.properties.numPlayersRequired
+            gp.properties.gameUUID,
+            gp.properties.weiBuyIn,
+            gp.properties.numPlayersRequired
         );
     }
 
@@ -116,48 +118,50 @@ contract BingoGameFactory {
             "Must select an active gameProposal"
         );
 
-        GameProposal storage gameProposal = gameProposals[gameUUID];
+        GameProposal storage gp = gameProposals[gameUUID];
 
         require(
-            gameProposal.playersCardCount[msg.sender] + numCardsDesired <=
+            gp.playersCardCount[msg.sender] + numCardsDesired <=
                 MAX_CARDS_PER_PLAYERS,
             "May not request more than MAX_CARDS_PER_PLAYERS"
         );
         require(
-            msg.value >= gameProposal.properties.weiBuyIn * numCardsDesired,
+            msg.value >= gp.properties.weiBuyIn * numCardsDesired,
             "Value must be >= weiBuyIn * numCardsDesired"
         );
 
         // Only increment numPlayersSignedUp if it's a new player
-        gameProposal.properties.numPlayersSignedUp += gameProposal
+        gp.properties.numPlayersSignedUp += gp
             .playersCardCount[msg.sender] == 0
             ? 1
             : 0;
-        gameProposal.playersCardCount[msg.sender] += numCardsDesired;
-        gameProposal.properties.totalCardCount += numCardsDesired;
+        gp.playersCardCount[msg.sender] += numCardsDesired;
+        gp.properties.totalCardCount += numCardsDesired;
      
         for(uint i=0; i<numCardsDesired; i++){
             bingoBoardNFT.safeMint(msg.sender);
         }
 
         if (
-            gameProposal.properties.numPlayersSignedUp >=
-            gameProposal.properties.numPlayersRequired
+            gp.properties.numPlayersSignedUp >=
+            gp.properties.numPlayersRequired
         ) {
-            uint256 jackpot = gameProposal.properties.weiBuyIn *
-                gameProposal.properties.totalCardCount;
+            uint256 jackpot = gp.properties.weiBuyIn *
+                gp.properties.totalCardCount;
             address deployedClone = Clones.cloneDeterministic(
-                bingoGame,
+                address(bingoGame),
                 bytes32(gameUUID)
             );
+            IBingoGame(deployedClone).init(gp.properties.drawTimeIntervalSec);
+
             emit GameCreated(
                 gameUUID,
                 deployedClone,
-                gameProposal.properties.numPlayersSignedUp,
+                gp.properties.numPlayersSignedUp,
                 jackpot
             );
 
-            activeGameUUIDs.remove(gameProposal.properties.gameUUID);
+            activeGameUUIDs.remove(gp.properties.gameUUID);
 
             (bool sent, ) = deployedClone.call{value: msg.value}("");
             require(sent, "Funding deployed clone failed");
