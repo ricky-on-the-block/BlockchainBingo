@@ -9,7 +9,11 @@ interface IBingoGame {
         uint256 awardAmount
     );
 
-    function init(uint256 timeIntervalSec) external;
+    function init(
+        uint256 gameUUID_,
+        uint256 timeIntervalSec,
+        address[] calldata players_
+    ) external;
 
     function drawNumber() external;
 

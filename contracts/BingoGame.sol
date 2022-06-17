@@ -4,32 +4,52 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 import "contracts/IBingoGame.sol";
+import "contracts/IBingoBoardNFT.sol";
 import "contracts/BingoBoardNFT.sol";
+import "contracts/SimpleRNG.sol";
 import "contracts/utils/EnumerableByteSet.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 uint8 constant MIN_DRAWING_NUM = 1;
 uint8 constant MAX_DRAWING_NUM = 75;
 
-contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
+contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
     EnumerableByteSet.Uint8Set private drawnNumbers;
 
     uint256 public drawTimeIntervalSec = 30;
     uint256 private lastDrawTimeStamp;
+    uint256 private gameUUID;
+    address[] private players;
+    IBingoBoardNFT public bingoBoardNFT;
 
     // TO DO: attach the balance of the owner to the GameUUID
     modifier onlyPlayers() {
-        require(
-            balanceOf(msg.sender) >= 1,
-            "Player must have a board to call this function"
-        );
+        bool isPlayer;
+
+        for (uint256 i = 0; i < players.length; i++) {
+            if (players[i] == msg.sender) {
+                isPlayer = true;
+            }
+        }
+
+        require(isPlayer, "Player must have a board to call this function");
         _;
     }
 
+    constructor(address bingoBoardNFT_) {
+        bingoBoardNFT = IBingoBoardNFT(bingoBoardNFT_);
+    }
+
     // -------------------------------------------------------------
-    function init(uint256 timeIntervalSec) public onlyOwner {
-        drawTimeIntervalSec = timeIntervalSec;
+    function init(
+        uint256 gameUUID_,
+        uint256 drawTimeIntervalSec_,
+        address[] calldata players_
+    ) public onlyOwner {
+        gameUUID = gameUUID_;
+        drawTimeIntervalSec = drawTimeIntervalSec_;
+        players = players_;
     }
 
     // -------------------------------------------------------------
@@ -64,13 +84,19 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
         returns (bool isBingo)
     {
         console.log("claimBingo()");
-        PlayerBoard storage pb = _playerBoards[tokenId];
+        require(
+            bingoBoardNFT.isNFTInGame(tokenId, gameUUID),
+            "Can only claim Bingo on this games cards"
+        );
+
+        BingoBoardNFT.PlayerBoardData memory pbData = bingoBoardNFT
+            .getPlayerBoardData(tokenId);
 
         // Boolean short-circuit eval should save on gas with the earliest win condition
         if (
-            checkWinCondition5SeqRows(pb) ||
-            checkWinCondition5SeqCols(pb) ||
-            checkWinCondition5SeqDiag(pb)
+            checkWinCondition5SeqRows(pbData) ||
+            checkWinCondition5SeqCols(pbData) ||
+            checkWinCondition5SeqDiag(pbData)
         ) {
             isBingo = true;
             uint256 awardAmount = address(this).balance;
@@ -89,19 +115,17 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    function checkWinCondition5SeqRows(PlayerBoard storage pb)
-        private
-        view
-        returns (bool)
-    {
+    function checkWinCondition5SeqRows(
+        BingoBoardNFT.PlayerBoardData memory pbData
+    ) private view returns (bool) {
         // Check every row
         for (uint8 i = 0; i < 5; i++) {
             if (
-                drawnNumbers.contains(pb.data.bColumn[i]) &&
-                drawnNumbers.contains(pb.data.iColumn[i]) &&
-                drawnNumbers.contains(pb.data.nColumn[i]) &&
-                drawnNumbers.contains(pb.data.gColumn[i]) &&
-                drawnNumbers.contains(pb.data.oColumn[i])
+                drawnNumbers.contains(pbData.bColumn[i]) &&
+                drawnNumbers.contains(pbData.iColumn[i]) &&
+                drawnNumbers.contains(pbData.nColumn[i]) &&
+                drawnNumbers.contains(pbData.gColumn[i]) &&
+                drawnNumbers.contains(pbData.oColumn[i])
             ) {
                 return true;
             }
@@ -110,7 +134,7 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    function checkWinCondition5SeqCol(uint8[5] storage col)
+    function checkWinCondition5SeqCol(uint8[5] memory col)
         private
         view
         returns (bool)
@@ -128,24 +152,22 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    function checkWinCondition5SeqCols(PlayerBoard storage pb)
-        private
-        view
-        returns (bool)
-    {
-        if (checkWinCondition5SeqCol(pb.data.bColumn)) {
+    function checkWinCondition5SeqCols(
+        BingoBoardNFT.PlayerBoardData memory pbData
+    ) private view returns (bool) {
+        if (checkWinCondition5SeqCol(pbData.bColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.data.iColumn)) {
+        if (checkWinCondition5SeqCol(pbData.iColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.data.nColumn)) {
+        if (checkWinCondition5SeqCol(pbData.nColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.data.gColumn)) {
+        if (checkWinCondition5SeqCol(pbData.gColumn)) {
             return true;
         }
-        if (checkWinCondition5SeqCol(pb.data.oColumn)) {
+        if (checkWinCondition5SeqCol(pbData.oColumn)) {
             return true;
         }
 
@@ -153,29 +175,27 @@ contract BingoGame is Ownable, BingoBoardNFT, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    function checkWinCondition5SeqDiag(PlayerBoard storage pb)
-        private
-        view
-        returns (bool)
-    {
+    function checkWinCondition5SeqDiag(
+        BingoBoardNFT.PlayerBoardData memory pbData
+    ) private view returns (bool) {
         // Check negative slope diagonal first
         if (
-            drawnNumbers.contains(pb.data.bColumn[0]) &&
-            drawnNumbers.contains(pb.data.iColumn[1]) &&
-            drawnNumbers.contains(pb.data.nColumn[2]) &&
-            drawnNumbers.contains(pb.data.gColumn[3]) &&
-            drawnNumbers.contains(pb.data.oColumn[4])
+            drawnNumbers.contains(pbData.bColumn[0]) &&
+            drawnNumbers.contains(pbData.iColumn[1]) &&
+            drawnNumbers.contains(pbData.nColumn[2]) &&
+            drawnNumbers.contains(pbData.gColumn[3]) &&
+            drawnNumbers.contains(pbData.oColumn[4])
         ) {
             return true;
         }
 
         // Then, check positive slope diagonal
         if (
-            drawnNumbers.contains(pb.data.bColumn[4]) &&
-            drawnNumbers.contains(pb.data.iColumn[3]) &&
-            drawnNumbers.contains(pb.data.nColumn[2]) &&
-            drawnNumbers.contains(pb.data.gColumn[1]) &&
-            drawnNumbers.contains(pb.data.oColumn[0])
+            drawnNumbers.contains(pbData.bColumn[4]) &&
+            drawnNumbers.contains(pbData.iColumn[3]) &&
+            drawnNumbers.contains(pbData.nColumn[2]) &&
+            drawnNumbers.contains(pbData.gColumn[1]) &&
+            drawnNumbers.contains(pbData.oColumn[0])
         ) {
             return true;
         }

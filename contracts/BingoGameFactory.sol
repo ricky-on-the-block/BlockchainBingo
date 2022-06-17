@@ -26,6 +26,7 @@ contract BingoGameFactory {
         uint8 drawTimeIntervalSec;
         uint8 numPlayersRequired;
         uint8 numPlayersSignedUp;
+        address[] playersSignedUp;
     }
 
     struct GameProposal {
@@ -95,6 +96,7 @@ contract BingoGameFactory {
         gp.properties.weiBuyIn = weiBuyIn;
         gp.properties.drawTimeIntervalSec = drawTimeIntervalSec;
         gp.properties.numPlayersSignedUp = 1; // creation only has 1 player
+        gp.properties.playersSignedUp.push(msg.sender);
         gp.playersCardCount[msg.sender] = numCardsDesired;
         gp.properties.totalCardCount = numCardsDesired;
 
@@ -134,9 +136,9 @@ contract BingoGameFactory {
         );
 
         // Only increment numPlayersSignedUp if it's a new player
-        gp.properties.numPlayersSignedUp += gp.playersCardCount[msg.sender] == 0
-            ? 1
-            : 0;
+        if (gp.playersCardCount[msg.sender] == 0) {
+            gp.properties.playersSignedUp.push(msg.sender);
+        }
         gp.playersCardCount[msg.sender] += numCardsDesired;
         gp.properties.totalCardCount += numCardsDesired;
 
@@ -145,7 +147,8 @@ contract BingoGameFactory {
         }
 
         if (
-            gp.properties.numPlayersSignedUp >= gp.properties.numPlayersRequired
+            gp.properties.playersSignedUp.length >=
+            gp.properties.numPlayersRequired
         ) {
             uint256 jackpot = gp.properties.weiBuyIn *
                 gp.properties.totalCardCount;
@@ -153,12 +156,16 @@ contract BingoGameFactory {
                 address(bingoGame),
                 bytes32(gameUUID)
             );
-            IBingoGame(deployedClone).init(gp.properties.drawTimeIntervalSec);
+            IBingoGame(deployedClone).init(
+                gp.properties.gameUUID,
+                gp.properties.drawTimeIntervalSec,
+                gp.properties.playersSignedUp
+            );
 
             emit GameCreated(
                 gameUUID,
                 deployedClone,
-                gp.properties.numPlayersSignedUp,
+                gp.properties.playersSignedUp.length,
                 jackpot
             );
 

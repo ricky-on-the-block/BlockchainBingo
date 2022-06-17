@@ -22,7 +22,7 @@ contract BingoBoardNFT is
     Counters.Counter private _tokenIdCounter;
 
     // Mapping from token ID to PlayerBoard
-    mapping(uint256 => PlayerBoard) _playerBoards;
+    mapping(uint256 => PlayerBoard) private _playerBoards;
 
     constructor() ERC721("BingoBoardNFT", "BINGOBOARD") {}
 
@@ -42,7 +42,25 @@ contract BingoBoardNFT is
     }
 
     // -------------------------------------------------------------
-    function getBingoBoardsData()
+    function isNFTInGame(uint256 tokenId, uint256 gameUUID)
+        public
+        view
+        returns (bool)
+    {
+        return _playerBoards[tokenId].data.gameUUID == gameUUID;
+    }
+
+    // -------------------------------------------------------------
+    function getPlayerBoardData(uint256 tokenId)
+        public
+        view
+        returns (PlayerBoardData memory pbData)
+    {
+        return _playerBoards[tokenId].data;
+    }
+
+    // -------------------------------------------------------------
+    function getPlayerBoardsData()
         external
         view
         returns (PlayerBoardData[] memory pbData)
@@ -57,7 +75,7 @@ contract BingoBoardNFT is
 
     // -------------------------------------------------------------
     function getBoardAsString(uint256 tokenId)
-        public
+        external
         view
         returns (string memory boardStr)
     {
