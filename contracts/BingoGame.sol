@@ -104,6 +104,8 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
             // Transfer winnings and announce the game has been won
             payable(msg.sender).transfer(awardAmount);
             emit GameWon(block.timestamp, msg.sender, awardAmount);
+
+            //Mint BingoSBT to the winner
         }
 
         return isBingo;
