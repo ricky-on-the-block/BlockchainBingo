@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 import "./EIP4973.sol";
+import "./IBingoSBT.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract BingoSBT is ERC4973, Ownable {
+contract BingoSBT is ERC4973, Ownable, IBingoSBT {
     uint256 public count = 0;
 
     constructor() ERC4973("BingoSBT", "BSBT") {}
