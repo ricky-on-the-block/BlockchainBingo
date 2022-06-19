@@ -17,13 +17,13 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
     EnumerableByteSet.Uint8Set private drawnNumbers;
 
-    uint256 public drawTimeIntervalSec = 30;
+    uint256 public drawTimeIntervalSec;
     uint256 private lastDrawTimeStamp;
     uint256 private gameUUID;
+    bool private _isInitialized;
     address[] private players;
     IBingoBoardNFT public bingoBoardNFT;
 
-    // TO DO: attach the balance of the owner to the GameUUID
     modifier onlyPlayers() {
         bool isPlayer;
 
@@ -37,6 +37,12 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
         _;
     }
 
+    modifier isInitialized() {
+        require(_isInitialized, "BingoGame Clone must be initialized");
+        _;
+    }
+
+    // -------------------------------------------------------------
     constructor(address bingoBoardNFT_) {
         bingoBoardNFT = IBingoBoardNFT(bingoBoardNFT_);
     }
@@ -50,10 +56,11 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
         gameUUID = gameUUID_;
         drawTimeIntervalSec = drawTimeIntervalSec_;
         players = players_;
+        _isInitialized = true;
     }
 
     // -------------------------------------------------------------
-    function drawNumber() external {
+    function drawNumber() external isInitialized {
         console.log("drawNumber()");
         require(
             block.timestamp >= lastDrawTimeStamp + drawTimeIntervalSec,
@@ -80,6 +87,7 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     // -------------------------------------------------------------
     function claimBingo(uint256 tokenId)
         external
+        isInitialized
         onlyPlayers
         returns (bool isBingo)
     {
@@ -112,7 +120,7 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     }
 
     // -------------------------------------------------------------
-    function getDrawnNumbers() external view returns (uint8[] memory) {
+    function getDrawnNumbers() external view isInitialized returns (uint8[] memory) {
         return drawnNumbers.values();
     }
 
