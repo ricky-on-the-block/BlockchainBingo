@@ -11,6 +11,8 @@ interface IBingoGame {
     );
 
     function init(
+        address bingoBoardNFT_,
+        address bingoSBT_,
         uint256 gameUUID,
         uint256 drawTimeIntervalSec,
         address[] calldata players

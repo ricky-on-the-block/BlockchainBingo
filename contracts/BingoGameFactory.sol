@@ -5,6 +5,7 @@ import "hardhat/console.sol";
 
 import "contracts/IBingoBoardNFT.sol";
 import "contracts/IBingoGame.sol";
+import "contracts/IBingoSBT.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
@@ -16,6 +17,7 @@ contract BingoGameFactory {
 
     IBingoGame public bingoGame;
     IBingoBoardNFT public bingoBoardNFT;
+    IBingoSBT public bingoSBT;
 
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
@@ -55,9 +57,10 @@ contract BingoGameFactory {
         uint256 jackpot
     );
 
-    constructor(IBingoGame _bingoGame, IBingoBoardNFT _bingoBoardNFT) {
-        bingoGame = _bingoGame;
-        bingoBoardNFT = _bingoBoardNFT;
+    constructor(address _bingoGame, address _bingoBoardNFT, address _bingoSBT) {
+        bingoGame = IBingoGame(_bingoGame);
+        bingoBoardNFT = IBingoBoardNFT(_bingoBoardNFT);
+        bingoSBT = IBingoSBT(_bingoSBT);
     }
 
     // External functions
@@ -157,7 +160,10 @@ contract BingoGameFactory {
                 address(bingoGame),
                 bytes32(gameUUID)
             );
+            console.log("BingoGame DEPLOYED CLONE @ %s", deployedClone);
             IBingoGame(deployedClone).init{value: jackpot}(
+                address(bingoBoardNFT),
+                address(bingoSBT),
                 gp.properties.gameUUID,
                 gp.properties.drawTimeIntervalSec,
                 gp.properties.playersSignedUp

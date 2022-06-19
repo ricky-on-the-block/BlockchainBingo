@@ -60,6 +60,8 @@ contract BingoGame is Initializable, IBingoGame {
 
     // -------------------------------------------------------------
     function init(
+        address bingoBoardNFT_,
+        address bingoSBT_,
         uint256 gameUUID_,
         uint256 drawTimeIntervalSec_,
         address[] calldata players_
@@ -70,6 +72,8 @@ contract BingoGame is Initializable, IBingoGame {
             msg.value
         );
         simpleRNGSeed.incrementRNG = block.timestamp;
+        bingoBoardNFT = IBingoBoardNFT(bingoBoardNFT_);
+        bingoSBT = IBingoSBT(bingoSBT_);
         gameUUID = gameUUID_;
         drawTimeIntervalSec = drawTimeIntervalSec_;
         players = players_;
@@ -78,7 +82,7 @@ contract BingoGame is Initializable, IBingoGame {
 
     // -------------------------------------------------------------
     function drawNumber() external isInitialized {
-        console.log("drawNumber()");
+        console.log("drawNumber() @ %s", address(this));
         require(
             winners.length == 0,
             "Can only drawNumber when there are no winners"
@@ -117,6 +121,7 @@ contract BingoGame is Initializable, IBingoGame {
         returns (bool isBingo)
     {
         console.log("claimBingo()");
+        console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
         require(
             bingoBoardNFT.isNFTInGame(tokenId, gameUUID),
             "Can only claim Bingo on this games cards"
