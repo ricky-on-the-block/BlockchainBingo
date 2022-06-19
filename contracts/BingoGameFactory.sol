@@ -53,11 +53,15 @@ contract BingoGameFactory {
     event GameCreated(
         uint256 gameUUID,
         address bingoGameContract,
-        uint256 numPlayers,
-        uint256 jackpot
+        uint256 jackpot,
+        address[] players
     );
 
-    constructor(address _bingoGame, address _bingoBoardNFT, address _bingoSBT) {
+    constructor(
+        address _bingoGame,
+        address _bingoBoardNFT,
+        address _bingoSBT
+    ) {
         bingoGame = IBingoGame(_bingoGame);
         bingoBoardNFT = IBingoBoardNFT(_bingoBoardNFT);
         bingoSBT = IBingoSBT(_bingoSBT);
@@ -165,15 +169,14 @@ contract BingoGameFactory {
                 address(bingoBoardNFT),
                 address(bingoSBT),
                 gp.properties.gameUUID,
-                gp.properties.drawTimeIntervalSec,
-                gp.properties.playersSignedUp
+                gp.properties.drawTimeIntervalSec
             );
 
             emit GameCreated(
                 gameUUID,
                 deployedClone,
-                gp.properties.playersSignedUp.length,
-                jackpot
+                jackpot,
+                gp.properties.playersSignedUp
             );
 
             activeGameUUIDs.remove(gp.properties.gameUUID);

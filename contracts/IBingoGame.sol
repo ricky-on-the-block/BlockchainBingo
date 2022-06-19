@@ -14,8 +14,7 @@ interface IBingoGame {
         address bingoBoardNFT_,
         address bingoSBT_,
         uint256 gameUUID,
-        uint256 drawTimeIntervalSec,
-        address[] calldata players
+        uint256 drawTimeIntervalSec
     ) external payable;
 
     function drawNumber() external;

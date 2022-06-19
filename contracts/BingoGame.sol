@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 import "contracts/IBingoGame.sol";
-import "contracts/IBingoBoardNFT.sol";
 import "contracts/IBingoSBT.sol";
 import "contracts/BingoBoardNFT.sol";
 import "contracts/LibSimpleRNG.sol";
@@ -17,35 +16,27 @@ uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window
 
 contract BingoGame is Initializable, IBingoGame {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
-    EnumerableByteSet.Uint8Set private drawnNumbers;
-
     using LibSimpleRNG for LibSimpleRNG.SimpleRNGSeed;
-    LibSimpleRNG.SimpleRNGSeed private simpleRNGSeed;
+
+    struct PlayerState {
+        bool hasWinnerBeenPaid;
+        uint256 numWinningBoards;
+    }
 
     uint256 public drawTimeIntervalSec;
+    BingoBoardNFT public bingoBoardNFT;
+    IBingoSBT public bingoSBT;
+
+    EnumerableByteSet.Uint8Set private drawnNumbers;
+    LibSimpleRNG.SimpleRNGSeed private simpleRNGSeed;
+    mapping(address => PlayerState) private winners;
+    uint256 private totalPlayerBoardsWon;
+    uint256 private weiPerWinningBoard;
+    mapping(uint256 => bool) private hasBoardWon;
     uint256 private lastDrawTimeStamp;
     uint256 private firstBingoTimeStamp;
     uint256 private gameUUID;
     bool private _isInitialized;
-    address[] private players;
-    address[] private winners;
-    mapping(address => bool) hasWinnerBeenPaid;
-    uint256 private weiPerWinner;
-    IBingoBoardNFT public bingoBoardNFT;
-    IBingoSBT public bingoSBT;
-
-    modifier onlyAddresses(address[] storage addressArr) {
-        bool isPlayer;
-
-        for (uint256 i = 0; i < addressArr.length; i++) {
-            if (addressArr[i] == msg.sender) {
-                isPlayer = true;
-            }
-        }
-
-        require(isPlayer, "Function for valid addresses only");
-        _;
-    }
 
     modifier isInitialized() {
         require(_isInitialized, "BingoGame Clone must be initialized");
@@ -53,7 +44,7 @@ contract BingoGame is Initializable, IBingoGame {
     }
 
     // -------------------------------------------------------------
-    constructor(IBingoBoardNFT bingoBoardNFT_, IBingoSBT bingoSBT_) {
+    constructor(BingoBoardNFT bingoBoardNFT_, IBingoSBT bingoSBT_) {
         bingoBoardNFT = bingoBoardNFT_;
         bingoSBT = bingoSBT_;
     }
@@ -63,8 +54,7 @@ contract BingoGame is Initializable, IBingoGame {
         address bingoBoardNFT_,
         address bingoSBT_,
         uint256 gameUUID_,
-        uint256 drawTimeIntervalSec_,
-        address[] calldata players_
+        uint256 drawTimeIntervalSec_
     ) public payable initializer {
         console.log(
             "BingoGame(%s) init CALLED, msg.value(%s)",
@@ -72,11 +62,10 @@ contract BingoGame is Initializable, IBingoGame {
             msg.value
         );
         simpleRNGSeed.incrementRNG = block.timestamp;
-        bingoBoardNFT = IBingoBoardNFT(bingoBoardNFT_);
+        bingoBoardNFT = BingoBoardNFT(bingoBoardNFT_);
         bingoSBT = IBingoSBT(bingoSBT_);
         gameUUID = gameUUID_;
         drawTimeIntervalSec = drawTimeIntervalSec_;
-        players = players_;
         _isInitialized = true;
     }
 
@@ -84,7 +73,7 @@ contract BingoGame is Initializable, IBingoGame {
     function drawNumber() external isInitialized {
         console.log("drawNumber() @ %s", address(this));
         require(
-            winners.length == 0,
+            totalPlayerBoardsWon == 0,
             "Can only drawNumber when there are no winners"
         );
         require(
@@ -117,18 +106,25 @@ contract BingoGame is Initializable, IBingoGame {
     function claimBingo(uint256 tokenId)
         external
         isInitialized
-        onlyAddresses(players)
         returns (bool isBingo)
     {
         console.log("claimBingo()");
         console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
+        require(
+            !hasBoardWon[tokenId],
+            "Cannot claim bingo for multiple boards"
+        );
+        require(
+            bingoBoardNFT.ownerOf(tokenId) == msg.sender,
+            "Only the board owner can use this tokenId"
+        );
         require(
             bingoBoardNFT.isNFTInGame(tokenId, gameUUID),
             "Can only claim Bingo on this games cards"
         );
         // if claimBingo window is expired, revert
         require(
-            winners.length == 0 ||
+            totalPlayerBoardsWon == 0 ||
                 block.timestamp < firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
             "claimBingo tie interval expired"
         );
@@ -149,39 +145,51 @@ contract BingoGame is Initializable, IBingoGame {
                 firstBingoTimeStamp = block.timestamp;
             }
 
-            winners.push(msg.sender);
+            winners[msg.sender].numWinningBoards++;
+            totalPlayerBoardsWon++;
 
-            // ASSUMPTION: Clone delegatecalls to claimBingo(), and bingoSBT.issue()
+            // TODO: Come back and fix this
+            // FALSE ASSUMPTION: Clone delegatecalls to claimBingo(), and bingoSBT.issue()
             //             is a normal call. So, the owner can be BingoGame implementation contract
             // TODO: Add URI as SVG
-            bingoSBT.mint(msg.sender, "");
+            // bingoSBT.mint(msg.sender, "");
 
             emit BingoClaimed(gameUUID, msg.sender);
         }
     }
 
     // -------------------------------------------------------------
-    function getWinnings() external onlyAddresses(winners) {
+    function getWinnings() external {
         require(
             block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
             "Bingo Tie Interval must be expired"
         );
-        require(!hasWinnerBeenPaid[msg.sender], "Winner can not be paid twice");
+        require(
+            winners[msg.sender].numWinningBoards > 0,
+            "Only winners can getWinnings()"
+        );
+        require(
+            !winners[msg.sender].hasWinnerBeenPaid,
+            "Winner can not be paid twice"
+        );
 
-        // Update weiPerWinner once when tie interval is expired
-        if (weiPerWinner == 0) {
-            weiPerWinner = address(this).balance / winners.length;
+        // Update weiPerWinningBoard once when tie interval is expired
+        if (weiPerWinningBoard == 0) {
+            weiPerWinningBoard = address(this).balance / totalPlayerBoardsWon;
         }
 
+        uint256 winnerPayout = winners[msg.sender].numWinningBoards *
+            weiPerWinningBoard;
+
         // Handle rounding errors by always taking the minimum
-        uint256 weiPayout = weiPerWinner < address(this).balance
-            ? weiPerWinner
+        uint256 weiPayout = winnerPayout < address(this).balance
+            ? winnerPayout
             : address(this).balance;
 
         (bool success, ) = msg.sender.call{value: weiPayout}("");
         require(success, "Payment to winner failed");
 
-        hasWinnerBeenPaid[msg.sender] = true;
+        winners[msg.sender].hasWinnerBeenPaid = true;
 
         emit WinningsDistributed(gameUUID, msg.sender, weiPayout);
     }
