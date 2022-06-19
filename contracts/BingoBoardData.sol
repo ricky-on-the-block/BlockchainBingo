@@ -3,10 +3,13 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-import "contracts/SimpleRNG.sol";
+import "contracts/LibSimpleRNG.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract BingoBoardData is SimpleRNG {
+contract BingoBoardData {
+    using LibSimpleRNG for LibSimpleRNG.SimpleRNGSeed;
+    LibSimpleRNG.SimpleRNGSeed private simpleRNGSeed;
+
     struct BoardGeneration {
         bool isInitialized;
         mapping(uint8 => bool) numUsed;
@@ -33,6 +36,10 @@ contract BingoBoardData is SimpleRNG {
     uint8 constant N_OFFSET = 2 * 15;
     uint8 constant G_OFFSET = 3 * 15;
     uint8 constant O_OFFSET = 4 * 15;
+
+    constructor() {
+        simpleRNGSeed.incrementRNG = block.timestamp;
+    }
 
     // -------------------------------------------------------------
     function append(string memory a, string memory b)
@@ -76,7 +83,7 @@ contract BingoBoardData is SimpleRNG {
         view
         returns (string memory boardStr)
     {
-        console.log("generateBoardStr()");
+        // console.log("generateBoardStr()");
 
         boardStr = concatenateBoardStr(boardStr, self.data.bColumn);
         boardStr = concatenateBoardStr(boardStr, self.data.iColumn);
@@ -94,13 +101,13 @@ contract BingoBoardData is SimpleRNG {
         uint8[5] storage column,
         uint8 columnOffset
     ) private {
-        console.log("generateColumn()");
+        // console.log("generateColumn()");
 
         uint8 randomNum;
         for (uint256 i = 0; i < column.length; ) {
             // Mod 15 results in a uint in the range [0, 14], so add 1 to get to range [1, 15]
             // Then, multiply by the offset for the desired column
-            randomNum = uint8((rng() % 15) + 1 + columnOffset);
+            randomNum = uint8((simpleRNGSeed.rng() % 15) + 1 + columnOffset);
 
             // Only increment when we find a non-colliding random number for the current column
             if (randomNum != 0 && !self.gen.numUsed[randomNum]) {
@@ -118,7 +125,7 @@ contract BingoBoardData is SimpleRNG {
     function generateBoard(PlayerBoard storage self, uint256 gameUUID)
         internal
     {
-        console.log("generateBoard()");
+        // console.log("generateBoard()");
 
         self.data.gameUUID = gameUUID;
 

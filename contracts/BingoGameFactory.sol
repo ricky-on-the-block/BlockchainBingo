@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-import "contracts/IBingoBoardNFTMintable.sol";
+import "contracts/IBingoBoardNFT.sol";
 import "contracts/IBingoGame.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
@@ -15,7 +15,7 @@ contract BingoGameFactory {
     uint8 public constant MAX_DRAW_INTERVAL_SEC = 60;
 
     IBingoGame public bingoGame;
-    IBingoBoardNFTMintable public bingoBoardNFT;
+    IBingoBoardNFT public bingoBoardNFT;
 
     // We define an internal struct of properties to easily return an array of active GameProposals
     // to the front-end in `getActiveGameProposals`
@@ -55,7 +55,7 @@ contract BingoGameFactory {
         uint256 jackpot
     );
 
-    constructor(IBingoGame _bingoGame, IBingoBoardNFTMintable _bingoBoardNFT) {
+    constructor(IBingoGame _bingoGame, IBingoBoardNFT _bingoBoardNFT) {
         bingoGame = _bingoGame;
         bingoBoardNFT = _bingoBoardNFT;
     }
@@ -95,6 +95,7 @@ contract BingoGameFactory {
         gp.properties.weiBuyIn = weiBuyIn;
         gp.properties.drawTimeIntervalSec = drawTimeIntervalSec;
         gp.properties.numPlayersSignedUp = 1; // creation only has 1 player
+        gp.properties.numPlayersRequired = numPlayersRequired;
         gp.properties.playersSignedUp.push(msg.sender);
         gp.playersCardCount[msg.sender] = numCardsDesired;
         gp.properties.totalCardCount = numCardsDesired;
@@ -151,11 +152,12 @@ contract BingoGameFactory {
         ) {
             uint256 jackpot = gp.properties.weiBuyIn *
                 gp.properties.totalCardCount;
+
             address deployedClone = Clones.cloneDeterministic(
                 address(bingoGame),
                 bytes32(gameUUID)
             );
-            IBingoGame(deployedClone).init(
+            IBingoGame(deployedClone).init{value: jackpot}(
                 gp.properties.gameUUID,
                 gp.properties.drawTimeIntervalSec,
                 gp.properties.playersSignedUp
@@ -169,9 +171,6 @@ contract BingoGameFactory {
             );
 
             activeGameUUIDs.remove(gp.properties.gameUUID);
-
-            (bool sent, ) = deployedClone.call{value: msg.value}("");
-            require(sent, "Funding deployed clone failed");
         }
     }
 

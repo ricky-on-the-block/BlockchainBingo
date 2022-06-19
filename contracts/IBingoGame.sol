@@ -14,7 +14,7 @@ interface IBingoGame {
         uint256 gameUUID,
         uint256 drawTimeIntervalSec,
         address[] calldata players
-    ) external;
+    ) external payable;
 
     function drawNumber() external;
 

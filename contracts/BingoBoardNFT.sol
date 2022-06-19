@@ -3,8 +3,7 @@ pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
-import "contracts/SimpleRNG.sol";
-import "contracts/IBingoBoardNFTMintable.sol";
+import "contracts/IBingoBoardNFT.sol";
 import "contracts/BingoBoardData.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -16,7 +15,7 @@ contract BingoBoardNFT is
     ERC721,
     ERC721Enumerable,
     Ownable,
-    IBingoBoardNFTMintable
+    IBingoBoardNFT
 {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;

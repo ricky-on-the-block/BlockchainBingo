@@ -5,19 +5,22 @@ import "hardhat/console.sol";
 
 import "contracts/IBingoGame.sol";
 import "contracts/IBingoBoardNFT.sol";
+import "contracts/IBingoSBT.sol";
 import "contracts/BingoBoardNFT.sol";
-import "contracts/SimpleRNG.sol";
-import "contracts/SBTs/IBingoSBT.sol";
+import "contracts/LibSimpleRNG.sol";
 import "contracts/utils/EnumerableByteSet.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 uint8 constant MIN_DRAWING_NUM = 1;
 uint8 constant MAX_DRAWING_NUM = 75;
 uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window for ties
 
-contract BingoGame is Ownable, IBingoGame, SimpleRNG {
+contract BingoGame is Initializable, IBingoGame {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
     EnumerableByteSet.Uint8Set private drawnNumbers;
+
+    using LibSimpleRNG for LibSimpleRNG.SimpleRNGSeed;
+    LibSimpleRNG.SimpleRNGSeed private simpleRNGSeed;
 
     uint256 public drawTimeIntervalSec;
     uint256 private lastDrawTimeStamp;
@@ -56,15 +59,17 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     }
 
     // -------------------------------------------------------------
-    // TODO: Check if the transfer to this contract sends ETH to the clone or the impl contract
-    receive() external payable {}
-
-    // -------------------------------------------------------------
     function init(
         uint256 gameUUID_,
         uint256 drawTimeIntervalSec_,
         address[] calldata players_
-    ) public onlyOwner {
+    ) public payable initializer {
+        console.log(
+            "BingoGame(%s) init CALLED, msg.value(%s)",
+            address(this),
+            msg.value
+        );
+        simpleRNGSeed.incrementRNG = block.timestamp;
         gameUUID = gameUUID_;
         drawTimeIntervalSec = drawTimeIntervalSec_;
         players = players_;
@@ -82,12 +87,16 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
             block.timestamp >= lastDrawTimeStamp + drawTimeIntervalSec,
             "Not ready to draw a number yet"
         );
+        require(
+            drawnNumbers.length() < MAX_DRAWING_NUM,
+            "No more valid numbers to draw"
+        );
         uint8 randomNum;
 
         // Loop the rng until we find a number that we haven't already drawn
         do {
             // Mod 75 results in a uint in the range [0, 74], so add 1 to get to range [1, 75]
-            randomNum = uint8(((rng() % MAX_DRAWING_NUM) + 1));
+            randomNum = uint8(((simpleRNGSeed.rng() % MAX_DRAWING_NUM) + 1));
         } while (drawnNumbers.contains(randomNum));
 
         require(
