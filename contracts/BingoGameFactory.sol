@@ -56,9 +56,9 @@ contract BingoGameFactory {
         uint256 jackpot
     );
 
-    constructor(address _bingoGame, address _bingoBoardNFT) {
-        bingoGame = IBingoGame(_bingoGame);
-        bingoBoardNFT = IBingoBoardNFTMintable(_bingoBoardNFT);
+    constructor(IBingoGame _bingoGame, IBingoBoardNFTMintable _bingoBoardNFT) {
+        bingoGame = _bingoGame;
+        bingoBoardNFT = _bingoBoardNFT;
     }
 
     // External functions

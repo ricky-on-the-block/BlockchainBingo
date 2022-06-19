@@ -7,6 +7,7 @@ import "contracts/IBingoGame.sol";
 import "contracts/IBingoBoardNFT.sol";
 import "contracts/BingoBoardNFT.sol";
 import "contracts/SimpleRNG.sol";
+import "contracts/SBTs/IBingoSBT.sol";
 import "contracts/utils/EnumerableByteSet.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -23,6 +24,7 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     bool private _isInitialized;
     address[] private players;
     IBingoBoardNFT public bingoBoardNFT;
+    IBingoSBT public bingoSBT;
 
     modifier onlyPlayers() {
         bool isPlayer;
@@ -43,8 +45,9 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     }
 
     // -------------------------------------------------------------
-    constructor(address bingoBoardNFT_) {
-        bingoBoardNFT = IBingoBoardNFT(bingoBoardNFT_);
+    constructor(IBingoBoardNFT bingoBoardNFT_, IBingoSBT bingoSBT_) {
+        bingoBoardNFT = bingoBoardNFT_;
+        bingoSBT = bingoSBT_;
     }
 
     // -------------------------------------------------------------
@@ -113,7 +116,10 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
             payable(msg.sender).transfer(awardAmount);
             emit GameWon(block.timestamp, msg.sender, awardAmount);
 
-            //Mint BingoSBT to the winner
+            // ASSUMPTION: Clone delegatecalls to claimBingo(), and bingoSBT.issue()
+            //             is a normal call. So, the owner can be BingoGame implementation contract
+            // TODO: Add URI as SVG
+            bingoSBT.mint(msg.sender, "");
         }
 
         return isBingo;

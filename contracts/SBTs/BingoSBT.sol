@@ -1,22 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./EIP4973.sol";
+import "./ERC4973.sol";
 import "./IBingoSBT.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract BingoSBT is ERC4973, Ownable, IBingoSBT {
-    uint256 public count = 0;
+    using Counters for Counters.Counter;
+    Counters.Counter private _tokenIdCounter;
 
     constructor() ERC4973("BingoSBT", "BSBT") {}
 
-    function burn(uint256 _tokenId) public override {
-        require(ownerOf(_tokenId) == msg.sender, "You can't revoke this token");
-        _burn(_tokenId);
-    }
-
-    function issue(address _issuee, string calldata _uri) external onlyOwner {
-        _mint(_issuee, count, _uri);
-        count += 1;
+    function mint(address issuee, string calldata uri) public onlyOwner {
+        _mint(issuee, _tokenIdCounter.current(), uri);
+        _tokenIdCounter.increment();
     }
 }
