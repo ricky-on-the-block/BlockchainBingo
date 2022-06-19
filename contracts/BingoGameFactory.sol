@@ -12,7 +12,7 @@ contract BingoGameFactory {
     uint256 public constant MIN_WEI_BUY_IN = 1;
     uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
     uint8 public constant MIN_NUM_PLAYERS = 5;
-    uint8 public constant MAX_TIME_INTERVAL_SEC = 60;
+    uint8 public constant MAX_DRAW_INTERVAL_SEC = 60;
 
     IBingoGame public bingoGame;
     IBingoBoardNFTMintable public bingoBoardNFT;
@@ -33,7 +33,6 @@ contract BingoGameFactory {
         GameProposalProperties properties;
         mapping(address => uint8) playersCardCount;
     }
-    GameProposal private none;
 
     uint256 private gamesUUIDCounter = 1;
 
@@ -71,8 +70,8 @@ contract BingoGameFactory {
     ) external payable {
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
         require(
-            drawTimeIntervalSec <= MAX_TIME_INTERVAL_SEC,
-            "drawTimeIntervalSec > MAX_TIME_INTERVAL_SEC"
+            drawTimeIntervalSec <= MAX_DRAW_INTERVAL_SEC,
+            "drawTimeIntervalSec > MAX_DRAW_INTERVAL_SEC"
         );
         require(
             numPlayersRequired >= MIN_NUM_PLAYERS,
