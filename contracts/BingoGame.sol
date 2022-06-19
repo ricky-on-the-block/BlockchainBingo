@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 uint8 constant MIN_DRAWING_NUM = 1;
 uint8 constant MAX_DRAWING_NUM = 75;
+uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window for ties
 
 contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
@@ -20,22 +21,26 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
 
     uint256 public drawTimeIntervalSec;
     uint256 private lastDrawTimeStamp;
+    uint256 private firstBingoTimeStamp;
     uint256 private gameUUID;
     bool private _isInitialized;
     address[] private players;
+    address[] private winners;
+    mapping(address => bool) hasWinnerBeenPaid;
+    uint256 private weiPerWinner;
     IBingoBoardNFT public bingoBoardNFT;
     IBingoSBT public bingoSBT;
 
-    modifier onlyPlayers() {
+    modifier onlyAddresses(address[] storage addressArr) {
         bool isPlayer;
 
-        for (uint256 i = 0; i < players.length; i++) {
-            if (players[i] == msg.sender) {
+        for (uint256 i = 0; i < addressArr.length; i++) {
+            if (addressArr[i] == msg.sender) {
                 isPlayer = true;
             }
         }
 
-        require(isPlayer, "Player must have a board to call this function");
+        require(isPlayer, "Function for valid addresses only");
         _;
     }
 
@@ -49,6 +54,10 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
         bingoBoardNFT = bingoBoardNFT_;
         bingoSBT = bingoSBT_;
     }
+
+    // -------------------------------------------------------------
+    // TODO: Check if the transfer to this contract sends ETH to the clone or the impl contract
+    receive() external payable {}
 
     // -------------------------------------------------------------
     function init(
@@ -65,6 +74,10 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     // -------------------------------------------------------------
     function drawNumber() external isInitialized {
         console.log("drawNumber()");
+        require(
+            winners.length == 0,
+            "Can only drawNumber when there are no winners"
+        );
         require(
             block.timestamp >= lastDrawTimeStamp + drawTimeIntervalSec,
             "Not ready to draw a number yet"
@@ -83,7 +96,7 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
         );
 
         drawnNumbers.add(randomNum);
-        emit NumberDrawn(randomNum);
+        emit NumberDrawn(gameUUID, randomNum);
         lastDrawTimeStamp = block.timestamp;
     }
 
@@ -91,13 +104,19 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
     function claimBingo(uint256 tokenId)
         external
         isInitialized
-        onlyPlayers
+        onlyAddresses(players)
         returns (bool isBingo)
     {
         console.log("claimBingo()");
         require(
             bingoBoardNFT.isNFTInGame(tokenId, gameUUID),
             "Can only claim Bingo on this games cards"
+        );
+        // if claimBingo window is expired, revert
+        require(
+            winners.length == 0 ||
+                block.timestamp < firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
+            "claimBingo tie interval expired"
         );
 
         BingoBoardNFT.PlayerBoardData memory pbData = bingoBoardNFT
@@ -110,23 +129,56 @@ contract BingoGame is Ownable, IBingoGame, SimpleRNG {
             checkWinCondition5SeqDiag(pbData)
         ) {
             isBingo = true;
-            uint256 awardAmount = address(this).balance;
 
-            // Transfer winnings and announce the game has been won
-            payable(msg.sender).transfer(awardAmount);
-            emit GameWon(block.timestamp, msg.sender, awardAmount);
+            // Update timestamp on first bingo winner
+            if (firstBingoTimeStamp == 0) {
+                firstBingoTimeStamp = block.timestamp;
+            }
+
+            winners.push(msg.sender);
 
             // ASSUMPTION: Clone delegatecalls to claimBingo(), and bingoSBT.issue()
             //             is a normal call. So, the owner can be BingoGame implementation contract
             // TODO: Add URI as SVG
             bingoSBT.mint(msg.sender, "");
-        }
 
-        return isBingo;
+            emit BingoClaimed(gameUUID, msg.sender);
+        }
     }
 
     // -------------------------------------------------------------
-    function getDrawnNumbers() external view isInitialized returns (uint8[] memory) {
+    function getWinnings() external onlyAddresses(winners) {
+        require(
+            block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
+            "Bingo Tie Interval must be expired"
+        );
+        require(!hasWinnerBeenPaid[msg.sender], "Winner can not be paid twice");
+
+        // Update weiPerWinner once when tie interval is expired
+        if (weiPerWinner == 0) {
+            weiPerWinner = address(this).balance / winners.length;
+        }
+
+        // Handle rounding errors by always taking the minimum
+        uint256 weiPayout = weiPerWinner < address(this).balance
+            ? weiPerWinner
+            : address(this).balance;
+
+        (bool success, ) = msg.sender.call{value: weiPayout}("");
+        require(success, "Payment to winner failed");
+
+        hasWinnerBeenPaid[msg.sender] = true;
+
+        emit WinningsDistributed(gameUUID, msg.sender, weiPayout);
+    }
+
+    // -------------------------------------------------------------
+    function getDrawnNumbers()
+        external
+        view
+        isInitialized
+        returns (uint8[] memory)
+    {
         return drawnNumbers.values();
     }
 
