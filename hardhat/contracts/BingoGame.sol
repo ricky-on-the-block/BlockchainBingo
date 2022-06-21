@@ -150,12 +150,6 @@ contract BingoGame is Initializable, IBingoGame {
             totalPlayerBoardsWon++;
             hasBoardWon[tokenId] = true;
 
-            // TODO: Come back and fix this
-            // FALSE ASSUMPTION: Clone delegatecalls to claimBingo(), and bingoSBT.issue()
-            //             is a normal call. So, the owner can be BingoGame implementation contract
-            // TODO: Add URI as SVG
-            // bingoSBT.mint(msg.sender, "");
-
             emit BingoClaimed(gameUUID, msg.sender);
             console.log("Total Winners Signed up: %s", totalPlayerBoardsWon);
         }
@@ -165,14 +159,10 @@ contract BingoGame is Initializable, IBingoGame {
     function getWinnings() external {
         // console.log("getWinnings()");
         // console.log("Claimer of winnings: %s", msg.sender);
-
-
         // require(
         //     block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
         //     "Bingo Tie Interval must be expired"
         // );
-
-
         require(
             winners[msg.sender].numWinningBoards > 0,
             "Only winners can getWinnings()"
