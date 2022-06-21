@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/src/css/tailwind.css" rel="stylesheet" />
+    <title>Blockchain Bingo</title>
+  </head>
+  <body class="bg-gray-300">
+    <div>
+      <div class="grid bg-gray-100 lg:grid-cols-2 2xl:grid-cols-5">
+        <div
+          class="mx-auto max-w-md px-8 py-12 sm:max-w-xl lg:max-w-full lg:px-12 lg:py-24 xl:mr-0 2xl:col-span-2"
+        >
+          <div class="xl:max-w-xl">
+            <img class="mt-6 h-10" src="/src/img/logo-brand.svg" alt="Workcation" />
+            <img
+              class="mt-6 rounded-lg object-center shadow-xl sm:mt-8 sm:h-64 sm:w-full sm:object-cover lg:hidden"
+              src="/src/img/beach-work.jpg"
+              alt="Woman workcationing on the beach"
+            />
+            <h1
+              class="mt-6 text-2xl font-bold text-gray-900 sm:mt-8 sm:text-4xl lg:text-3xl xl:text-4xl"
+            >
+              You can work from anywhere.
+              <br class="hidden lg:inline" />
+              <span class="text-brand">Take advantage of it.</span>
+            </h1>
+            <p class="mt-2 text-gray-600 sm:mt-4 sm:text-xl">
+              Workcation helps you find work-friendly rentals in beautiful
+              locations so you can enjoy some nice weather even when you're not
+              on vacation.
+            </p>
+            <div class="mt-4 space-x-1 sm:mt-6">
+              <a
+                class="btn btn-primary shadow-lg transition hover:-translate-y-0.5"
+                href="#"
+                >Book your escape</a
+              >
+              <a class="btn btn-secondary" href="#">Learn more</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative hidden lg:block 2xl:col-span-3">
+          <img
+            class="absolute inset-0 h-full w-full object-cover object-center"
+            src="/src/img/beach-work.jpg"
+            alt="Woman workcationing on the beach"
+          />
+        </div>
+      </div>
+
+      <!-- Popular Destinations Section -->
+      <div class="mx-auto max-w-md px-8 py-8 sm:max-w-xl lg:max-w-6xl lg:px-12">
+        <h2 class="text-2xl text-gray-900">Popular destinations</h2>
+        <p class="mt-2 text-gray-600">
+          A selection of great work-friendly cities with lots to see and
+          explore.
+        </p>
+
+        <!-- ALPINEJS: Loop over all Destinations and render the same HTML (a psuedo-component!) -->
+        <div x-data class="mt-6 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+          <template x-for="dest in $store.dests">
+            <div
+              class="flex items-center overflow-hidden rounded-lg bg-white shadow-lg"
+            >
+              <img
+                class="h-32 w-32 flex-shrink-0"
+                x-bind:src="dest.imageUrl"
+                x-bind:alt="dest.imageAlt"
+              />
+              <div class="px-6 py-4">
+                <h3
+                  class="text-lg font-semibold text-gray-800"
+                  x-text="dest.city"
+                ></h3>
+
+                <p
+                  class="text-gray-600"
+                  x-text="dest.averagePrice + ' / night average'"
+                ></p>
+                <div class="mt-4">
+                  <a
+                    href="#"
+                    class="text-sm font-semibold text-brand hover:text-brand-light"
+                    x-text="'Explore ' + dest.propertyCount + ' properties'"
+                  ></a>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/alpinejs.ts"></script>
+  </body>
+</html>
