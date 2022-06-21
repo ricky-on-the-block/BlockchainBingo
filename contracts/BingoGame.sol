@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 uint8 constant MIN_DRAWING_NUM = 1;
 uint8 constant MAX_DRAWING_NUM = 75;
-uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window for ties
+uint256 constant BINGO_TIE_INTERVAL_SEC = 2; //60 * 3; // We allows a 3 minute window for ties
 
 contract BingoGame is Initializable, IBingoGame {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
@@ -71,7 +71,7 @@ contract BingoGame is Initializable, IBingoGame {
 
     // -------------------------------------------------------------
     function drawNumber() external isInitialized {
-        console.log("drawNumber() @ %s", address(this));
+        console.log("drawNumber(%s) @ %s", drawnNumbers.length() + 1, address(this));
         require(
             totalPlayerBoardsWon == 0,
             "Can only drawNumber when there are no winners"
@@ -109,7 +109,8 @@ contract BingoGame is Initializable, IBingoGame {
         returns (bool isBingo)
     {
         console.log("claimBingo()");
-        console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
+        // console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
+        console.log("Owner NFT: %s === msg.sender : %s", bingoBoardNFT.ownerOf(tokenId), msg.sender);
         require(
             !hasBoardWon[tokenId],
             "Cannot claim bingo for multiple boards"
@@ -155,15 +156,18 @@ contract BingoGame is Initializable, IBingoGame {
             // bingoSBT.mint(msg.sender, "");
 
             emit BingoClaimed(gameUUID, msg.sender);
+            console.log("Total Winners Signed up: %s", totalPlayerBoardsWon);
         }
     }
 
     // -------------------------------------------------------------
     function getWinnings() external {
-        require(
-            block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
-            "Bingo Tie Interval must be expired"
-        );
+        console.log("getWinnings()");
+        console.log("Claimer of winnings: %s", msg.sender);
+        // require(
+        //     block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
+        //     "Bingo Tie Interval must be expired"
+        // );
         require(
             winners[msg.sender].numWinningBoards > 0,
             "Only winners can getWinnings()"

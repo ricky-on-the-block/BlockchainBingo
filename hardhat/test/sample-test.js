@@ -1,8 +1,11 @@
 const { expect } = require("chai");
+const { Wallet } = require("ethers");
 const { ethers } = require("hardhat");
 
 describe("All BingoGame Unit Tests", function () {
   let bingoGameFactoryContract;
+  let bingoGameContract;
+  let bingoBoardNFTContract;
   let signers;
   before(async function () {
     signers = await ethers.getSigners();
@@ -15,7 +18,7 @@ describe("All BingoGame Unit Tests", function () {
     );
 
     // Deploy NFT & SBT Contracts
-    const bingoBoardNFTContract = await bingoBoardNFT.deploy();
+    bingoBoardNFTContract = await bingoBoardNFT.deploy();
     await bingoBoardNFTContract.deployed();
     console.log("bingoBoardNFTContract: %s", bingoBoardNFTContract.address);
     const bingoGameSBTContract = await bingoGameSBT.deploy();
@@ -23,7 +26,7 @@ describe("All BingoGame Unit Tests", function () {
     console.log("bingoGameSBTContract: %s", bingoGameSBTContract.address);
 
     // Deploy BingoGame Contract, transfer ownership of SBT
-    const bingoGameContract = await bingoGame.deploy(
+    bingoGameContract = await bingoGame.deploy(
       bingoBoardNFTContract.address,
       bingoGameSBTContract.address
     );
@@ -34,7 +37,8 @@ describe("All BingoGame Unit Tests", function () {
     // Deploy BingoGameFactory Contract, transfer ownership of NFT & BingoGame
     bingoGameFactoryContract = await bingoGameFactory.deploy(
       bingoGameContract.address,
-      bingoBoardNFTContract.address
+      bingoBoardNFTContract.address,
+      bingoGameSBTContract.address
     );
     await bingoGameFactoryContract.deployed();
     console.log(
@@ -55,11 +59,9 @@ describe("All BingoGame Unit Tests", function () {
 
     it("joinGameProposal() should FAIL with < payment amount", async function () {
       await expect(
-        bingoGameFactoryContract
-          .connect(signers[1])
-          .joinGameProposal(1, 2, {
-            value: ethers.utils.parseUnits("1", "wei"),
-          })
+        bingoGameFactoryContract.connect(signers[1]).joinGameProposal(1, 2, {
+          value: ethers.utils.parseUnits("1", "wei"),
+        })
       ).to.be.reverted;
     });
 
@@ -83,11 +85,9 @@ describe("All BingoGame Unit Tests", function () {
 
     it("joinGameProposal() should fail if game is already made", async function () {
       await expect(
-        bingoGameFactoryContract
-          .connect(signers[5])
-          .joinGameProposal(1, 2, {
-            value: ethers.utils.parseUnits("2", "wei"),
-          })
+        bingoGameFactoryContract.connect(signers[5]).joinGameProposal(1, 2, {
+          value: ethers.utils.parseUnits("2", "wei"),
+        })
       ).to.be.reverted;
     });
   });
@@ -95,8 +95,109 @@ describe("All BingoGame Unit Tests", function () {
   describe("BingoGame Tests", function () {
     // Test win conditions
     // 1. claimBingo fails with no drawnNumbers
+    it("claimBingo() fails with invalid token ID", async function () {
+      await expect(
+        bingoGameContract
+          .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+          .connect(signers[0])
+          .claimBingo(9999999)
+      ).to.be.reverted;
+    });
     // 2. claimBingo succeeds with 75 drawnNumbers
-    // 3. claimBingo allows ties with 75 drawnNumbers
+    it("claimBingo() succeeds with 75 drawnNumbers", async function () {
+      for (i = 0; i < 75; i++) {
+        await bingoGameContract
+          .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+          .connect(signers[0])
+          .drawNumber();
+      }
+      await bingoGameContract
+        .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+        .connect(signers[0])
+        .claimBingo(0);
+    });
+  });
+
+  // Test Multiple Winners
+  describe("BingoGame Multiple Winners", function () {
+
+    function timeout(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // claimBingo allows multiple winners with 75 drawnNumbers
+    it("claimBingo allows multiple winners with 75 drawnNumbers", async function () {
+      await bingoGameFactoryContract
+        .connect(signers[0])
+        .createGameProposal(1, 10, 5, 1, {
+          value: ethers.utils.parseUnits("1", "wei"),
+        });
+
+      await bingoGameFactoryContract
+        .connect(signers[1])
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+
+      await bingoGameFactoryContract
+        .connect(signers[2])
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+
+      await bingoGameFactoryContract
+        .connect(signers[3])
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+
+      await bingoGameFactoryContract
+        .connect(signers[4])
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+
+      for (i = 0; i < 75; i++) {
+        await bingoGameContract
+          .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+          .connect(signers[0])
+          .drawNumber();
+      }
+      await bingoGameContract
+        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .connect(signers[0])
+        .claimBingo(9);
+      await bingoGameContract
+        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .connect(signers[1])
+        .claimBingo(10);
+    });
+    
+
+    it("Winner should not receive the full jackpot", async function() {
+       await expect(
+        await bingoGameContract
+        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .connect(signers[0])
+        .getWinnings()).to.changeEtherBalance(signers[0], +4)
+
+        await expect(
+          await bingoGameContract
+          .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+          .connect(signers[1])
+          .getWinnings()).to.changeEtherBalance(signers[1], +4)
+
+    });
+
+    it("Winner should not get paid twice", async function() {
+       await expect(
+        bingoGameContract
+        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .connect(signers[0])
+        .getWinnings()
+       ).to.be.revertedWith("Winner can not be paid twice");
+
+       await expect(
+        bingoGameContract
+        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .connect(signers[0])
+        .getWinnings()
+       ).to.be.revertedWith("Winner can not be paid twice");
+
+   });
+
   });
 
   /*
