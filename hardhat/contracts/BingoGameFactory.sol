@@ -164,7 +164,11 @@ contract BingoGameFactory {
                 address(bingoGame),
                 bytes32(gameUUID)
             );
-            console.log("BingoGame DEPLOYED CLONE @ %s with GameUUID: %s", deployedClone, gameUUID);
+            console.log(
+                "BingoGame DEPLOYED CLONE @ %s with GameUUID: %s",
+                deployedClone,
+                gameUUID
+            );
             IBingoGame(deployedClone).init{value: jackpot}(
                 address(bingoBoardNFT),
                 address(bingoSBT),
