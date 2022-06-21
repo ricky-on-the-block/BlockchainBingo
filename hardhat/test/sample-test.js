@@ -164,7 +164,7 @@ describe("All BingoGame Unit Tests", function () {
     it("claimBingo() should FAIL with invalid tokenID", async function () {
       await expect(
         bingoGameContract
-          .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+          .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
           .connect(signers[0])
           .claimBingo(9999999)
       ).to.be.reverted;
@@ -173,7 +173,7 @@ describe("All BingoGame Unit Tests", function () {
     it("claimBingo() should FAIL with owner_tokenID != msg.sender", async function () {
       await expect(
         bingoGameContract
-          .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+          .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
           .connect(signers[0])
           .claimBingo(2)
       ).to.be.revertedWith("Only the board owner can use this tokenId");
@@ -181,7 +181,7 @@ describe("All BingoGame Unit Tests", function () {
 
     it("getWinnings() should FAIL with msg.sender != winner", async function() {
       expect(bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[0])
         .getWinnings()).to.be.revertedWith("Only winners can getWinnings()");
    });
@@ -189,19 +189,19 @@ describe("All BingoGame Unit Tests", function () {
     it("claimBingo() should SUCCED with 75 drawnNumbers", async function () {
       for (i = 0; i < 75; i++) {
         await bingoGameContract
-          .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+          .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
           .connect(signers[0])
           .drawNumber();
       }
       await bingoGameContract
-        .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+        .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
         .connect(signers[0])
         .claimBingo(0);
     });
 
     it("claimBingo() should FAIL with hasBoardWon[tokenId] (already claim bingo)", async function () {
       expect(bingoGameContract
-        .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+        .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
         .connect(signers[0])
         .claimBingo(0)).to.be.revertedWith("Cannot claim bingo for multiple board");
     });
@@ -209,7 +209,7 @@ describe("All BingoGame Unit Tests", function () {
     it("getWinnings() should SUCCED with isBingo=true", async function() {
       await expect(
         await bingoGameContract
-        .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+        .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
         .connect(signers[0])
         .getWinnings()).to.changeEtherBalance(signers[0], +10)
   });
@@ -217,7 +217,7 @@ describe("All BingoGame Unit Tests", function () {
     it("getWinnings() should FAIL with hasWinnerBeenPaid=true", async function() {
       await expect(
        bingoGameContract
-       .attach("0xfbd7b064bc43c7bcfe35239c587cc3604c88f299")
+       .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
        .connect(signers[0])
        .getWinnings()
       ).to.be.revertedWith("Winner can not be paid twice");
@@ -255,14 +255,14 @@ describe("All BingoGame Unit Tests", function () {
 
     it("claimBingo() should FAIL with tokenID not part of gameUUID", async function() {
       expect(bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[0])
         .claimBingo(0)).to.be.revertedWith("Can only claim Bingo on this games cards");
    });
 
    it("getWinnings() should FAIL with owner!=winner", async function() {
     expect(bingoGameContract
-      .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+      .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
       .connect(signers[0])
       .getWinnings()).to.be.revertedWith("Only winners can getWinnings()");
  });
@@ -270,16 +270,16 @@ describe("All BingoGame Unit Tests", function () {
     it("claimBingo() should SUCCED with multiple winners && 75 drawnNumbers", async function() {
       for (i = 0; i < 75; i++) {
         await bingoGameContract
-          .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+          .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
           .connect(signers[0])
           .drawNumber();
       }
       await bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[0])
         .claimBingo(10);
       await bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[1])
         .claimBingo(11);
    });
@@ -287,13 +287,13 @@ describe("All BingoGame Unit Tests", function () {
     it("getWinnings() should SUCCED with multiple winners (distribute winnings equal to share)", async function() {
        await expect(
         await bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[0])
         .getWinnings()).to.changeEtherBalance(signers[0], +4)
 
         await expect(
           await bingoGameContract
-          .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+          .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
           .connect(signers[1])
           .getWinnings()).to.changeEtherBalance(signers[1], +4)
 
@@ -302,14 +302,14 @@ describe("All BingoGame Unit Tests", function () {
     it("getWinnings() should FAIL with hasWinnerBeenPaid=true", async function() {
        await expect(
         bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[0])
         .getWinnings()
        ).to.be.revertedWith("Winner can not be paid twice");
 
        await expect(
         bingoGameContract
-        .attach("0x2006d0fcbfd3334755b501823fa4e234d8eb3969")
+        .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
         .connect(signers[1])
         .getWinnings()
        ).to.be.revertedWith("Winner can not be paid twice");

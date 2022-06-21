@@ -108,9 +108,9 @@ contract BingoGame is Initializable, IBingoGame {
         isInitialized
         returns (bool isBingo)
     {
-        console.log("claimBingo()");
-        console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
-        console.log("Owner NFT: %s === msg.sender : %s", bingoBoardNFT.ownerOf(tokenId), msg.sender);
+        // console.log("claimBingo()");
+        // console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
+        // console.log("Owner NFT: %s === msg.sender : %s", bingoBoardNFT.ownerOf(tokenId), msg.sender);
         require(
             !hasBoardWon[tokenId],
             "Cannot claim bingo for multiple boards"
