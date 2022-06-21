@@ -32,7 +32,7 @@ describe("All BingoGame Unit Tests", function () {
     );
     await bingoGameContract.deployed();
     console.log("bingoGameContract: %s", bingoGameContract.address);
-    bingoGameSBTContract.transferOwnership(bingoGameContract.address);
+    // bingoGameSBTContract.transferOwnership(bingoGameContract.address);
 
     // Deploy BingoGameFactory Contract, transfer ownership of NFT & BingoGame
     bingoGameFactoryContract = await bingoGameFactory.deploy(
@@ -46,6 +46,7 @@ describe("All BingoGame Unit Tests", function () {
       bingoGameFactoryContract.address
     );
     bingoBoardNFTContract.transferOwnership(bingoGameFactoryContract.address);
+    bingoGameSBTContract.transferOwnership(bingoGameFactoryContract.address);
   });
 
   describe("BingoGameFactory Tests", function () {

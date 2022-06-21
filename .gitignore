@@ -7,3 +7,4 @@
 #Hardhat files
 hardhat/cache
 hardhat/artifacts
+node_modules

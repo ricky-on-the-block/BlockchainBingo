@@ -172,6 +172,8 @@ contract BingoGameFactory {
                 0 // gp.properties.drawTimeIntervalSec
             );
 
+            bingoSBT.addOwner(deployedClone);
+
             emit GameCreated(
                 gameUUID,
                 deployedClone,
