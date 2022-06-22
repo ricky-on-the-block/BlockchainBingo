@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 uint8 constant MIN_DRAWING_NUM = 1;
 uint8 constant MAX_DRAWING_NUM = 75;
-uint256 constant BINGO_TIE_INTERVAL_SEC = 2; //60 * 3; // We allows a 3 minute window for ties
+uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window for ties
 
 contract BingoGame is Initializable, IBingoGame {
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
@@ -159,10 +159,10 @@ contract BingoGame is Initializable, IBingoGame {
     function getWinnings() external {
         // console.log("getWinnings()");
         // console.log("Claimer of winnings: %s", msg.sender);
-        // require(
-        //     block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
-        //     "Bingo Tie Interval must be expired"
-        // );
+        require(
+            block.timestamp > firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC,
+            "Bingo Tie Interval must be expired"
+        );
         require(
             winners[msg.sender].numWinningBoards > 0,
             "Only winners can getWinnings()"

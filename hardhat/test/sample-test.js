@@ -7,6 +7,14 @@ describe("All BingoGame Unit Tests", function () {
   let bingoGameContract;
   let bingoBoardNFTContract;
   let signers;
+
+  async function incrementBlockChainTime(timeStampIncrement) {
+    const currentBlockNumber = await ethers.provider.getBlockNumber();
+    const currentTimeStamp = (await ethers.provider.getBlock(currentBlockNumber)).timestamp;
+    const increasedTimeStamp = currentTimeStamp + timeStampIncrement;
+    await ethers.provider.send("evm_mine", [increasedTimeStamp]);
+  }
+
   before(async function () {
     signers = await ethers.getSigners();
 
@@ -207,6 +215,7 @@ describe("All BingoGame Unit Tests", function () {
 
     it("claimBingo() should SUCCED with 75 drawnNumbers", async function () {
       for (i = 0; i < 75; i++) {
+        await incrementBlockChainTime(10);
         await bingoGameContract
           .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
           .connect(signers[0])
@@ -228,6 +237,7 @@ describe("All BingoGame Unit Tests", function () {
     });
 
     it("getWinnings() should SUCCED with isBingo=true", async function () {
+      await incrementBlockChainTime(60*3);
       await expect(
         await bingoGameContract
           .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
@@ -282,7 +292,7 @@ describe("All BingoGame Unit Tests", function () {
       ).to.be.revertedWith("Can only claim Bingo on this games cards");
     });
 
-    it("getWinnings() should FAIL with owner!=winner", async function () {
+    it("getWinnings() should FAIL with owner != winner", async function () {
       expect(
         bingoGameContract
           .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
@@ -293,6 +303,7 @@ describe("All BingoGame Unit Tests", function () {
 
     it("claimBingo() should SUCCED with multiple winners && 75 drawnNumbers", async function () {
       for (i = 0; i < 75; i++) {
+        await incrementBlockChainTime(10);
         await bingoGameContract
           .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
           .connect(signers[0])
@@ -309,6 +320,7 @@ describe("All BingoGame Unit Tests", function () {
     });
 
     it("getWinnings() should SUCCED with multiple winners (distribute winnings equal to share)", async function () {
+      await incrementBlockChainTime(60*3);
       await expect(
         await bingoGameContract
           .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")

@@ -173,7 +173,7 @@ contract BingoGameFactory {
                 address(bingoBoardNFT),
                 address(bingoSBT),
                 gp.properties.gameUUID,
-                0 // gp.properties.drawTimeIntervalSec
+                gp.properties.drawTimeIntervalSec
             );
 
             bingoSBT.addOwner(deployedClone);
