@@ -1,96 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
+  <style>
+    [x-cloak] {
+      display: none !important;
+    }
+  </style>
   <head>
+    <title>Blockchain Bingo</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link href="/src/css/tailwind.css" rel="stylesheet" />
-    <title>Blockchain Bingo</title>
+
+    <!-- Google Font Import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet" />
+
+    <script type="module" src="/src/alpinejs.ts"></script>
   </head>
-  <body class="bg-gray-300">
-    <section title="Landing Page Header">
-      <div class="grid bg-gray-100 lg:grid-cols-2 2xl:grid-cols-5">
-        <div class="mx-auto max-w-md px-8 py-12 sm:max-w-xl lg:max-w-full lg:px-12 lg:py-24 xl:mr-0 2xl:col-span-2">
-          <div class="xl:max-w-xl">
-            <img class="mt-6 h-10" src="/src/img/logo-brand.svg" alt="Workcation" />
-            <img class="mt-6 rounded-lg object-center shadow-xl sm:mt-8 sm:h-64 sm:w-full sm:object-cover lg:hidden" src="/src/img/beach-work.jpg" alt="Woman workcationing on the beach" />
-            <h1 class="mt-6 text-2xl font-bold text-gray-900 sm:mt-8 sm:text-4xl lg:text-3xl xl:text-4xl">
-              You can work from anywhere.
-              <br class="hidden lg:inline" />
-              <span class="text-brand">Take advantage of it.</span>
-            </h1>
-            <p class="mt-2 text-gray-600 sm:mt-4 sm:text-xl">Workcation helps you find work-friendly rentals in beautiful locations so you can enjoy some nice weather even when you're not on vacation.</p>
-            <div class="mt-4 space-x-1 sm:mt-6">
-              <a class="btn btn-primary shadow-lg transition hover:-translate-y-0.5" href="#">Book your escape</a>
-              <a class="btn btn-secondary" href="#">Learn more</a>
-            </div>
+  <body x-data="{ pageState: 'landing' }" class="bg-slate-900">
+    <!-- Navigation Bar -->
+    <nav class="flex items-stretch justify-between px-6 py-8 shadow-xl shadow-white/5 lg:px-12">
+      <div x-on:click="pageState = 'landing'" class="flex flex-row divide-x divide-gray-600">
+        <button class="ml-16 mr-6 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-2 py-2 font-brand-headline text-slate-900 sm:text-2xl lg:text-3xl">BB</button>
+        <h1 x-cloak x-show="pageState == 'dashboard'" x-transition class="my-2 pl-6 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">dashboard</h1>
+      </div>
+      <h1 class="mr-16 px-2 py-2 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">connect wallet</h1>
+    </nav>
+
+    <!-- Website Body -->
+    <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <!-- Page: Landing -->
+      <section x-show="pageState == 'landing'" x-transition class="flex min-h-screen items-center justify-center">
+        <div class="flex flex-col items-center justify-center">
+          <span class="bg-gradient-to-r from-indigo-700 to-pink-500 bg-clip-text font-brand-headline text-9xl text-transparent">Blockchain</span>
+          <span class="my-4 font-brand-headline text-9xl tracking-wide text-gray-50">Bingo</span>
+
+          <!-- Button: Enter App -->
+          <div class="group relative mt-32 transition hover:-translate-y-0.5">
+            <div class="absolute -inset-0.5 animate-pulse rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 opacity-75 blur transition duration-150 group-hover:opacity-100"></div>
+            <button x-on:click="pageState = 'dashboard'" class="relative flex items-center space-x-5 rounded-lg bg-slate-900 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-widest">
+              <span class="text-gray-300 transition duration-150 group-hover:text-gray-100">Enter App</span>
+            </button>
           </div>
         </div>
+      </section>
 
-        <div class="relative hidden lg:block 2xl:col-span-3">
-          <img class="absolute inset-0 h-full w-full object-cover object-center" src="/src/img/beach-work.jpg" alt="Woman workcationing on the beach" />
-        </div>
-      </div>
-    </section>
+      <!-- Page: Dashboard -->
+      <div x-show="pageState == 'dashboard'" x-transition class="container mx-auto flex min-h-screen flex-col items-center sm:px-6 lg:px-8">
+        <!-- 
+        Each Joinable Game Card:
+        1. GameUUID
+        2. weiBuyIn
+        3. max cards per player
+        4. draw time interval
+        5. Players: signedUp / Required
+      -->
 
-    <!-- Popular Destinations Section -->
-    <section title="Popular Destinations Dynamic Section">
-      <div class="mx-auto max-w-md px-8 py-8 sm:max-w-xl lg:max-w-6xl lg:px-12">
-        <h2 class="text-2xl text-gray-900">Popular destinations</h2>
-        <p class="mt-2 text-gray-600">A selection of great work-friendly cities with lots to see and explore.</p>
-
-        <!-- ALPINEJS: Loop over all Destinations and render the same HTML (a psuedo-component!) -->
-        <div x-data class="mt-6 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
-          <template x-for="dest in $store.dests">
-            <div class="flex items-center overflow-hidden rounded-lg bg-white shadow-lg">
-              <img class="h-32 w-32 flex-shrink-0" x-bind:src="dest.imageUrl" x-bind:alt="dest.imageAlt" />
-              <div class="px-6 py-4">
-                <h3 class="text-lg font-semibold text-gray-800" x-text="dest.city"></h3>
-                <p class="text-gray-600" x-text="dest.averagePrice + ' / night average'"></p>
-                <div class="mt-4">
-                  <a href="#" class="text-sm font-semibold text-brand hover:text-brand-light" x-text="'Explore ' + dest.propertyCount + ' properties'"></a>
+        <!-- Section: Game Board -->
+        <section class="mt-8 min-w-full overflow-hidden rounded-lg bg-white shadow">
+          <div class="flex flex-row justify-between px-4 py-5 sm:px-6">
+            <h2 class="py-2 pl-4 font-brand-headline text-3xl text-slate-900">Game Board</h2>
+            <button x-on:click="pageState = 'dashboard'" class="relative flex items-center space-x-5 rounded-lg bg-green-600 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-widest transition hover:-translate-y-0.5">
+              <span class="text-gray-200 transition duration-150 hover:text-white">+ Create Game</span>
+            </button>
+            <!-- Content goes here -->
+            <!-- We use less vertical padding on card headers on desktop than on body sections -->
+          </div>
+          <div class="bg-gray-200 px-4 py-5 sm:p-6">
+            <!-- Content goes here -->
+            <!-- This example requires Tailwind CSS v2.0+ -->
+            <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <!-- TODO: Repeat this for the number of active games -->
+              <li class="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow">
+                <div class="flex flex-1 flex-col p-8">
+                  <span class="mx-auto inline-flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-900 to-pink-700">
+                    <button class="font-brand-headline text-3xl leading-none text-white">Game #100</button>
+                  </span>
+                  <h3 class="mt-6 text-sm font-medium text-gray-900">Buy In: 100 Wei</h3>
+                  <dl class="mt-1 flex flex-grow flex-col justify-between">
+                    <dd class="text-sm text-gray-500">Max Cards: 10</dd>
+                    <dd class="text-sm text-gray-500">Draw Interval: 10 sec</dd>
+                    <dd class="mt-3">
+                      <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Players: 8/12</span>
+                    </dd>
+                  </dl>
                 </div>
-              </div>
-            </div>
+                <div>
+                  <div class="-mt-px flex">
+                    <div class="flex w-0 flex-1">
+                      <button class="relative -mr-px inline-flex w-0 flex-1 items-center justify-center rounded-bl-lg border border-transparent py-4 text-sm font-medium text-gray-700 transition hover:bg-green-300 hover:text-green-800">
+                        <!-- Heroicon name: solid/mail -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4.293 15.707a1 1 0 010-1.414l5-5a1 1 0 011.414 0l5 5a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414 0zm0-6a1 1 0 010-1.414l5-5a1 1 0 011.414 0l5 5a1 1 0 01-1.414 1.414L10 5.414 5.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="ml-3">Join Game</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+
+              <!-- TODO: Iterate More Games... -->
+            </ul>
+          </div>
+        </section>
+
+        <!-- Section: Your Games -->
+        <section class="mt-8 min-w-full overflow-hidden rounded-lg bg-white shadow" title="Your Games">
+          <div class="flex flex-row justify-between px-4 py-5 sm:px-6">
+            <h2 class="py-2 pl-4 font-brand-headline text-3xl text-slate-900">Your Games</h2>
+            <!-- Content goes here -->
+            <!-- We use less vertical padding on card headers on desktop than on body sections -->
+          </div>
+          <div class="bg-gray-50 px-4 py-5 sm:p-6">
+            <!-- Content goes here -->
+            <!-- This example requires Tailwind CSS v2.0+ -->
+          </div>
+        </section>
+
+        <!-- Drawn Numbers: B Column -->
+        <div x-data="{ nums : [...Array(15 - 1 + 1).keys()].map(x => x + 1) }" class="mx-8 mt-10 flex w-11/12 flex-row flex-wrap gap-1 rounded-xl bg-red-200">
+          <template x-for="num in nums">
+            <span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-900 to-pink-700">
+              <button x-text="num" class="font-brand-headline text-3xl leading-none text-white"></button>
+            </span>
           </template>
         </div>
       </div>
-    </section>
 
-    <!-- Testing Bingo Card Grid -->
-    <section title="Bingo Card">
-      <div class="flex min-h-screen flex-row flex-wrap items-center bg-purple-500">
-        <div class="mx-auto max-w-4xl flex-1 p-10">
-          <ul class="grid aspect-square grid-flow-col grid-cols-5 grid-rows-5 gap-5">
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">15</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">16</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">17</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">18</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">19</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">20</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">21</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">22</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">23</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">24</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">25</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">26</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">27</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">28</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">29</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">30</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">31</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">32</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">33</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">34</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">35</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">36</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">37</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">38</li>
-            <li class="flex items-center justify-center rounded-lg bg-white text-5xl shadow-xl transition-colors hover:bg-purple-900 hover:text-white">39</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <script type="module" src="/src/alpinejs.ts"></script>
+      <!-- <section title="Landing Page" class="max-h-screen flex items-center justify-center">
+      <h1 class="text-9xl font-brand-headline text-white">Blockchain Bingo</h1>
+    </section> -->
+    </div>
   </body>
 </html>
