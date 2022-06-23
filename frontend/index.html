@@ -130,12 +130,12 @@
                 </div>
                 <div class="w-full py-4">
                   <span class="inline-flex w-full justify-center font-brand-headline text-2xl text-slate-900">Drawn Numbers</span>
-                  <!-- Drawn Numbers: B Column -->
-                  <div x-data="{ nums : [...Array(15 - 1 + 1).keys()].map(x => x + 1) }" class="mt-4 inline-flex w-full flex-row flex-wrap gap-1 rounded-xl">
+                  <!-- TODO: Get all drawnNumbers from active bingo game contract -->
+                  <div x-data="{ nums : [...Array(40 - 1 + 1).keys()].map(x => x + 1) }" class="mt-4 inline-flex w-full flex-row flex-wrap gap-1 rounded-xl">
                     <template x-for="num in nums">
-                      <span class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-pink-800 to-indigo-800">
-                        <span x-text="num" class="font-brand-headline text-3xl leading-none text-white"></span>
-                      </span>
+                      <button x-text="num" x-data="{ marked: false }" x-on:click="marked = !marked" :class="marked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 bg-gradient-to-br from-pink-800 to-indigo-800 text-white'" class="font-brand-headline text-3xl inline-flex h-14 w-14 items-center justify-center rounded-full transition-colors">
+                        <!-- <span x-text="num" class="font-brand-headline text-3xl leading-none text-white"></span> -->
+                      </button>
                     </template>
                   </div>
                   <!-- Content goes here -->
@@ -144,7 +144,7 @@
                   <span class="inline-flex w-full justify-center pb-4 font-brand-headline text-2xl text-slate-900">Your Bingo Cards</span>
 
                   <!-- TODO: Repeat this for the number of player boards -->
-                  <ul x-data="{ nums : [...Array(4).keys()] }" class="flex w-full flex-row flex-wrap justify-evenly gap-4 space-y-2">
+                  <ul x-data="{ nums : [...Array(3).keys()] }" class="flex w-full flex-row flex-wrap justify-evenly gap-4 space-y-2">
                     <template x-for="num in nums">
                       <li class="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg text-center shadow-lg">
                         <div class="flex flex-1 flex-col rounded-tl-lg rounded-tr-lg bg-indigo-200 px-4 pb-4">
@@ -154,7 +154,7 @@
                           <!-- TODO: Loop over all bingo elements for the given card -->
                           <div x-data="{ nums : [...Array(39 - 15 + 1).keys()].map(x => x + 15) }" class="mx-auto grid aspect-square grid-flow-col grid-cols-5 grid-rows-5 gap-2 rounded-xl bg-gradient-to-tr from-indigo-900 to-pink-700 p-2">
                             <template x-for="num in nums" class="p-2">
-                              <button x-data="{ marked: false }" x-on:click="marked = !marked" x-text="num" :class="marked ? 'bg-green-300 text-slate-900 hover:bg-green-100' : 'bg-purple-900 text-white hover:bg-green-300 hover:text-slate-900'" class="flex items-center justify-center rounded-lg p-2 font-brand-headline text-3xl shadow-xl transition-colors">15</button>
+                              <button x-text="num" x-data="{ marked: false }" x-on:click="marked = !marked" :class="marked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" class="flex items-center justify-center rounded-lg p-2 font-brand-headline text-3xl shadow-xl transition-colors">15</button>
                             </template>
                           </div>
                         </div>
