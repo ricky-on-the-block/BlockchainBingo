@@ -27,7 +27,7 @@
         </button>
         <h1 x-data x-cloak x-show="$store.pageState.isDashboard()" x-transition class="my-2 pl-6 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">dashboard</h1>
       </div>
-      <button x-data="wallet" x-on:click="await connect" x-cloak x-show="$store.pageState.isDashboard()" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-6 py-2 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">connect wallet</button>
+      <button x-data="wallet" x-on:click="await connect()" x-text="isConnected ? 'Connected' : 'Connect Wallet'" :class="isConnected ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" x-cloak x-show="$store.pageState.isDashboard()" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-6 py-2 font-brand-headline sm:text-2xl lg:text-3xl"></button>
     </nav>
 
     <!-- Website Body -->
@@ -133,7 +133,7 @@
                   <!-- TODO: Get all drawnNumbers from active bingo game contract -->
                   <div x-data="{ nums : [...Array(40 - 1 + 1).keys()].map(x => x + 1) }" class="mt-4 inline-flex w-full flex-row flex-wrap gap-1 rounded-xl">
                     <template x-for="num in nums">
-                      <button x-text="num" x-data="{ marked: false }" x-on:click="marked = !marked" :class="marked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 bg-gradient-to-br from-pink-800 to-indigo-800 text-white'" class="font-brand-headline text-3xl inline-flex h-14 w-14 items-center justify-center rounded-full transition-colors">
+                      <button x-text="num" x-data="buttonClicked" x-on:click="click()" :class="clicked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 bg-gradient-to-br from-pink-800 to-indigo-800 text-white'" class="font-brand-headline text-3xl inline-flex h-14 w-14 items-center justify-center rounded-full transition-colors">
                         <!-- <span x-text="num" class="font-brand-headline text-3xl leading-none text-white"></span> -->
                       </button>
                     </template>
@@ -154,7 +154,7 @@
                           <!-- TODO: Loop over all bingo elements for the given card -->
                           <div x-data="{ nums : [...Array(39 - 15 + 1).keys()].map(x => x + 15) }" class="mx-auto grid aspect-square grid-flow-col grid-cols-5 grid-rows-5 gap-2 rounded-xl bg-gradient-to-tr from-indigo-900 to-pink-700 p-2">
                             <template x-for="num in nums" class="p-2">
-                              <button x-text="num" x-data="{ marked: false }" x-on:click="marked = !marked" :class="marked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" class="flex items-center justify-center rounded-lg p-2 font-brand-headline text-3xl shadow-xl transition-colors">15</button>
+                              <button x-text="num" x-data="buttonClicked" x-on:click="click" :class="clicked ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" class="flex items-center justify-center rounded-lg p-2 font-brand-headline text-3xl shadow-xl transition-colors">15</button>
                             </template>
                           </div>
                         </div>

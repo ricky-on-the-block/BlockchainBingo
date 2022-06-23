@@ -36,6 +36,14 @@ Alpine.store('pageState', {
     }
 });
 
+Alpine.data('buttonClicked', () => ({
+    clicked: false,
+
+    click() {
+        this.clicked = !this.clicked;
+    }
+}));
+
 Alpine.data('test', () => ({
     open: false,
 
@@ -48,6 +56,7 @@ Alpine.data('wallet', () => ({
     provider: null,
     signer: null,
     address: null,
+    isConnected: false,
 
     async connect() {
         console.log("connect");
@@ -61,11 +70,14 @@ Alpine.data('wallet', () => ({
 
         this.address = await this.signer.getAddress();
         console.log(this.address);
+
+        this.isConnected = true;
     },
 
     async disconnect() {
         await this.provider.close();
         this.provider = null;
+        this.isConnected = false;
     }
 }));
 
