@@ -10,9 +10,9 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BingoGameFactory {
-    uint256 public constant MIN_WEI_BUY_IN = 1;
-    uint256 public constant MAX_CARDS_PER_PLAYERS = 10;
-    uint8 public constant MIN_NUM_PLAYERS = 5;
+    uint256 public constant MIN_WEI_BUY_IN = 0.001 ether;
+    uint256 public constant MAX_CARDS_PER_PLAYERS = 3;
+    uint8 public constant MIN_NUM_PLAYERS = 2;
     uint8 public constant MAX_DRAW_INTERVAL_SEC = 60;
 
     IBingoGame public bingoGame;
