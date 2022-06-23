@@ -18,22 +18,22 @@
 
     <script type="module" src="/src/alpinejs.ts"></script>
   </head>
-  <body x-data="{ pageState: 'landing' }" class="bg-slate-900 antialiased">
+  <body class="bg-slate-900 antialiased">
     <!-- Navigation Bar -->
     <nav class="flex items-stretch justify-between px-6 py-8 shadow-xl shadow-white/5 lg:px-12">
       <div class="flex flex-row divide-x divide-gray-600">
-        <button x-on:click="pageState = 'landing'" class="ml-16 mr-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500">
+        <button x-data x-on:click="$store.pageState.toLanding()" class="ml-16 mr-6 inline-flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500">
           <span class="font-brand-headline text-3xl leading-none text-slate-900">BB</span>
         </button>
-        <h1 x-cloak x-show="pageState == 'dashboard'" x-transition class="my-2 pl-6 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">dashboard</h1>
+        <h1 x-data x-cloak x-show="$store.pageState.isDashboard()" x-transition class="my-2 pl-6 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">dashboard</h1>
       </div>
-      <button x-cloak x-show="pageState == 'dashboard'" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-8 py-2 font-brand-headline text-gray-50 text-3xl">connect wallet</button>
+      <button x-data="wallet" x-on:click="await connect" x-cloak x-show="$store.pageState.isDashboard()" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-6 py-2 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">connect wallet</button>
     </nav>
 
     <!-- Website Body -->
     <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
       <!-- Page: Landing -->
-      <section x-show="pageState == 'landing'" x-transition class="flex min-h-screen items-center justify-center">
+      <section x-data x-show="$store.pageState.isLanding()" x-transition class="flex min-h-screen items-center justify-center">
         <div class="flex flex-col items-center justify-center">
           <span class="bg-gradient-to-r from-indigo-700 to-pink-500 bg-clip-text font-brand-headline text-9xl text-transparent">Blockchain</span>
           <span class="my-4 font-brand-headline text-9xl tracking-wide text-gray-50">Bingo</span>
@@ -41,7 +41,7 @@
           <!-- Button: Enter App -->
           <div class="group relative mt-32 transition hover:-translate-y-0.5">
             <div class="absolute -inset-0.5 animate-pulse rounded-lg bg-gradient-to-r from-pink-600 to-purple-600 opacity-75 blur transition duration-150 group-hover:opacity-100"></div>
-            <button x-on:click="pageState = 'dashboard'" class="relative flex items-center space-x-5 rounded-lg bg-slate-900 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-widest">
+            <button x-data x-on:click="$store.pageState.toDashboard()" class="relative flex items-center space-x-5 rounded-lg bg-slate-900 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-widest">
               <span class="text-gray-300 transition duration-150 group-hover:text-gray-100">Enter App</span>
             </button>
           </div>
@@ -49,7 +49,7 @@
       </section>
 
       <!-- Page: Dashboard -->
-      <div x-show="pageState == 'dashboard'" x-transition class="container mx-auto flex min-h-screen flex-col items-center sm:px-6 lg:px-8">
+      <div x-data x-show="$store.pageState.isDashboard()" x-transition class="container mx-auto flex min-h-screen flex-col items-center sm:px-6 lg:px-8">
         <!-- 
         Each Joinable Game Card:
         1. GameUUID
@@ -63,7 +63,7 @@
         <section class="mt-8 min-w-full overflow-hidden rounded-lg bg-white shadow">
           <div class="flex flex-row justify-between px-4 py-5 sm:px-6">
             <h2 class="py-2 pl-4 font-brand-headline text-3xl text-slate-900">Game Board</h2>
-            <button x-on:click="pageState = 'dashboard'" class="relative flex items-center space-x-5 rounded-lg bg-green-500 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-wide text-gray-100 transition hover:-translate-y-0.5 hover:text-white">
+            <button class="relative flex items-center space-x-5 rounded-lg bg-green-500 px-7 py-4 text-xl font-semibold uppercase leading-none tracking-wide text-gray-100 transition hover:-translate-y-0.5 hover:text-white">
               <span class="transition duration-150">Create Game</span>
             </button>
             <!-- Content goes here -->
