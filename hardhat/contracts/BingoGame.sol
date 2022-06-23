@@ -71,7 +71,7 @@ contract BingoGame is Initializable, IBingoGame {
 
     // -------------------------------------------------------------
     function drawNumber() external isInitialized {
-        // console.log("drawNumber(%s) @ %s", drawnNumbers.length() + 1, address(this));
+        console.log("drawNumber(%s) @ %s", drawnNumbers.length() + 1, address(this));
         require(
             totalPlayerBoardsWon == 0,
             "Can only drawNumber when there are no winners"
@@ -108,7 +108,7 @@ contract BingoGame is Initializable, IBingoGame {
         isInitialized
         returns (bool isBingo)
     {
-        // console.log("claimBingo()");
+        console.log("claimBingo()");
         // console.log("bingoBoardNFT address %s", address(bingoBoardNFT));
         // console.log("Owner NFT: %s === msg.sender : %s", bingoBoardNFT.ownerOf(tokenId), msg.sender);
         require(

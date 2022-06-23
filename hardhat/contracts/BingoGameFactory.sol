@@ -75,6 +75,7 @@ contract BingoGameFactory {
         uint8 numPlayersRequired,
         uint8 numCardsDesired
     ) external payable {
+        console.log("createGameProposal()");
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
         require(
             drawTimeIntervalSec <= MAX_DRAW_INTERVAL_SEC,
@@ -125,6 +126,7 @@ contract BingoGameFactory {
         external
         payable
     {
+        console.log("joinGameProposal()");
         require(
             activeGameUUIDs.contains(gameUUID),
             "Must select an active gameProposal"

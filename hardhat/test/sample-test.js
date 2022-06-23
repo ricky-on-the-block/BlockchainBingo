@@ -6,6 +6,7 @@ describe("All BingoGame Unit Tests", function () {
   let bingoGameFactoryContract;
   let bingoGameContract;
   let bingoBoardNFTContract;
+  let bingoGameSBTContract;
   let signers;
 
   async function incrementBlockChainTime(timeStampIncrement) {
@@ -29,7 +30,7 @@ describe("All BingoGame Unit Tests", function () {
     bingoBoardNFTContract = await bingoBoardNFT.deploy();
     await bingoBoardNFTContract.deployed();
     console.log("bingoBoardNFTContract: %s", bingoBoardNFTContract.address);
-    const bingoGameSBTContract = await bingoGameSBT.deploy();
+    bingoGameSBTContract = await bingoGameSBT.deploy();
     await bingoGameSBTContract.deployed();
     console.log("bingoGameSBTContract: %s", bingoGameSBTContract.address);
 
@@ -63,7 +64,7 @@ describe("All BingoGame Unit Tests", function () {
         bingoGameFactoryContract
           .connect(signers[0])
           .createGameProposal(0, 10, 5, 1, {
-            value: ethers.utils.parseUnits("1", "wei"),
+            value: ethers.utils.parseUnits("0.001", "ether"),
           })
       ).to.be.revertedWith("MIN_WEI_BUY_IN not met");
     });
@@ -72,8 +73,8 @@ describe("All BingoGame Unit Tests", function () {
       await expect(
         bingoGameFactoryContract
           .connect(signers[0])
-          .createGameProposal(1, 120, 5, 1, {
-            value: ethers.utils.parseUnits("1", "wei"),
+          .createGameProposal(1000000000000000, 120, 5, 1, {
+            value: ethers.utils.parseUnits("0.001", "ether"),
           })
       ).to.be.revertedWith("drawTimeIntervalSec > MAX_DRAW_INTERVAL_SEC");
     });
@@ -82,8 +83,8 @@ describe("All BingoGame Unit Tests", function () {
       await expect(
         bingoGameFactoryContract
           .connect(signers[0])
-          .createGameProposal(1, 10, 2, 1, {
-            value: ethers.utils.parseUnits("1", "wei"),
+          .createGameProposal(1000000000000000, 10, 1, 1, {
+            value: ethers.utils.parseUnits("0.001", "ether"),
           })
       ).to.be.revertedWith("MIN_NUM_PLAYERS not met");
     });
@@ -92,8 +93,8 @@ describe("All BingoGame Unit Tests", function () {
       await expect(
         bingoGameFactoryContract
           .connect(signers[0])
-          .createGameProposal(1, 10, 5, 11, {
-            value: ethers.utils.parseUnits("11", "wei"),
+          .createGameProposal(1000000000000000, 10, 5, 11, {
+            value: ethers.utils.parseUnits("0.011", "ether"),
           })
       ).to.be.revertedWith("May not request more than MAX_CARDS_PER_PLAYERS");
     });
@@ -102,8 +103,8 @@ describe("All BingoGame Unit Tests", function () {
       await expect(
         bingoGameFactoryContract
           .connect(signers[0])
-          .createGameProposal(1, 10, 5, 8, {
-            value: ethers.utils.parseUnits("6", "wei"),
+          .createGameProposal(1000000000000000, 10, 5, 8, {
+            value: ethers.utils.parseUnits("0.001", "ether"),
           })
       ).to.be.revertedWith("Value must be >= weiBuyIn * numCardsDesired");
     });
@@ -111,15 +112,15 @@ describe("All BingoGame Unit Tests", function () {
     it("createGameProposal() should SUCCEED with valid input", async function () {
       await bingoGameFactoryContract
         .connect(signers[0])
-        .createGameProposal(1, 10, 5, 1, {
-          value: ethers.utils.parseUnits("1", "wei"),
+        .createGameProposal(1000000000000000, 10, 5, 1, {
+          value: ethers.utils.parseUnits("0.001", "ether"),
         });
     });
 
     it("joinGameProposal() should FAIL with < payment amount", async function () {
       await expect(
         bingoGameFactoryContract.connect(signers[1]).joinGameProposal(1, 2, {
-          value: ethers.utils.parseUnits("1", "wei"),
+          value: ethers.utils.parseUnits("0.001", "ether"),
         })
       ).to.be.revertedWith("Value must be >= weiBuyIn * numCardsDesired");
     });
@@ -127,7 +128,7 @@ describe("All BingoGame Unit Tests", function () {
     it("joinGameProposal() should FAIL with > numCardsDesired", async function () {
       await expect(
         bingoGameFactoryContract.connect(signers[1]).joinGameProposal(1, 20, {
-          value: ethers.utils.parseUnits("20", "wei"),
+          value: ethers.utils.parseUnits("0.002", "ether"),
         })
       ).to.be.revertedWith("May not request more than MAX_CARDS_PER_PLAYERS");
     });
@@ -136,14 +137,14 @@ describe("All BingoGame Unit Tests", function () {
       await bingoGameFactoryContract
         .connect(signers[0])
         .joinGameProposal(1, 1, {
-          value: ethers.utils.parseUnits("1", "wei"),
+          value: ethers.utils.parseUnits("0.001", "ether"),
         });
     });
 
     it("joinGameProposal() should FAIL with 2nd time signup && < payment amount", async function () {
       await expect(
         bingoGameFactoryContract.connect(signers[0]).joinGameProposal(1, 2, {
-          value: ethers.utils.parseUnits("1", "wei"),
+          value: ethers.utils.parseUnits("0.001", "ether"),
         })
       ).to.be.revertedWith("Value must be >= weiBuyIn * numCardsDesired");
     });
@@ -151,7 +152,7 @@ describe("All BingoGame Unit Tests", function () {
     it("joinGameProposal() should FAIL with 2nd time signup && > numCardsDesire", async function () {
       await expect(
         bingoGameFactoryContract.connect(signers[0]).joinGameProposal(1, 9, {
-          value: ethers.utils.parseUnits("9", "wei"),
+          value: ethers.utils.parseUnits("0.009", "ether"),
         })
       ).to.be.revertedWith("May not request more than MAX_CARDS_PER_PLAYERS");
     });
@@ -159,25 +160,25 @@ describe("All BingoGame Unit Tests", function () {
     it("joinGameProposal() should SUCCEED with valid input", async function () {
       await bingoGameFactoryContract
         .connect(signers[1])
-        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
     });
 
     it("joinGameProposal() should SUCCED to create game with enough players", async function () {
       await bingoGameFactoryContract
         .connect(signers[2])
-        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
       await bingoGameFactoryContract
         .connect(signers[3])
-        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
       await bingoGameFactoryContract
         .connect(signers[4])
-        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(1, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
     });
 
     it("joinGameProposal() should FAIL with gameProposal != active", async function () {
       await expect(
         bingoGameFactoryContract.connect(signers[5]).joinGameProposal(1, 2, {
-          value: ethers.utils.parseUnits("2", "wei"),
+          value: ethers.utils.parseUnits("0.002", "ether"),
         })
       ).to.be.revertedWith("Must select an active gameProposal");
     });
@@ -243,7 +244,13 @@ describe("All BingoGame Unit Tests", function () {
           .attach("0x0dbcb752eaab08f1e7ae7b57bb6daace6b8a377b")
           .connect(signers[0])
           .getWinnings()
-      ).to.changeEtherBalance(signers[0], +10);
+      ).to.changeEtherBalance(signers[0], ethers.utils.parseUnits("0.01","ether").toString());
+    });
+
+    it("getWinnings() should SUCCED with winner receiving SBT token", async function () {
+      console.log(signers[0].address);
+      console.log(await bingoGameSBTContract.isOwnerOfSBT(signers[0].address));
+      expect(await bingoGameSBTContract.isOwnerOfSBT(signers[0].address)).to.equal(true);
     });
 
     it("getWinnings() should FAIL with hasWinnerBeenPaid=true", async function () {
@@ -262,25 +269,25 @@ describe("All BingoGame Unit Tests", function () {
     it("createGameProposal() should SUCCED to create 2nd game with sign-ups", async function () {
       await bingoGameFactoryContract
         .connect(signers[0])
-        .createGameProposal(1, 10, 5, 1, {
-          value: ethers.utils.parseUnits("1", "wei"),
+        .createGameProposal(1000000000000000, 10, 5, 1, {
+          value: ethers.utils.parseUnits("0.001", "ether"),
         });
 
       await bingoGameFactoryContract
         .connect(signers[1])
-        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
 
       await bingoGameFactoryContract
         .connect(signers[2])
-        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
 
       await bingoGameFactoryContract
         .connect(signers[3])
-        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
 
       await bingoGameFactoryContract
         .connect(signers[4])
-        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("2", "wei") });
+        .joinGameProposal(2, 2, { value: ethers.utils.parseUnits("0.002", "ether") });
     });
 
     it("claimBingo() should FAIL with tokenID not part of gameUUID", async function () {
@@ -326,14 +333,14 @@ describe("All BingoGame Unit Tests", function () {
           .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
           .connect(signers[0])
           .getWinnings()
-      ).to.changeEtherBalance(signers[0], +4);
+      ).to.changeEtherBalance(signers[0], ethers.utils.parseUnits("0.0045","ether").toString());
 
       await expect(
         await bingoGameContract
           .attach("0xc0099b5681b7262f4922082a85de687a61cc420c")
           .connect(signers[1])
           .getWinnings()
-      ).to.changeEtherBalance(signers[1], +4);
+      ).to.changeEtherBalance(signers[1], ethers.utils.parseUnits("0.0045","ether").toString());
     });
 
     it("getWinnings() should FAIL with hasWinnerBeenPaid=true", async function () {
@@ -351,6 +358,12 @@ describe("All BingoGame Unit Tests", function () {
           .getWinnings()
       ).to.be.revertedWith("Winner can not be paid twice");
     });
+
+    it("getWinnings() should SUCCED with winner receiving SBT token", async function () { 
+      expect(await bingoGameSBTContract.isOwnerOfSBT(signers[0].address)).to.equal(true);
+      expect(await bingoGameSBTContract.isOwnerOfSBT(signers[1].address)).to.equal(true);
+    });
+
   });
 
   /*
