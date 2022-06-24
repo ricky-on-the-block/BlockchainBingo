@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 contract BingoGameFactory {
     uint256 public constant MIN_WEI_BUY_IN = 0.001 ether;
-    uint256 public constant MAX_CARDS_PER_PLAYERS = 6;
+    uint256 public constant MAX_CARDS_PER_PLAYER = 6;
     uint8 public constant MIN_NUM_PLAYERS = 2;
     uint8 public constant MAX_DRAW_INTERVAL_SEC = 60;
 
@@ -93,8 +93,8 @@ contract BingoGameFactory {
         GameProposal storage gp = gameProposals[gamesUUIDCounter];
 
         require(
-            numCardsDesired <= MAX_CARDS_PER_PLAYERS,
-            "May not request more than MAX_CARDS_PER_PLAYERS"
+            numCardsDesired <= MAX_CARDS_PER_PLAYER,
+            "May not request more than MAX_CARDS_PER_PLAYER"
         );
 
         // Initialize the GameProposal
@@ -136,8 +136,8 @@ contract BingoGameFactory {
 
         require(
             gp.playersCardCount[msg.sender] + numCardsDesired <=
-                MAX_CARDS_PER_PLAYERS,
-            "May not request more than MAX_CARDS_PER_PLAYERS"
+                MAX_CARDS_PER_PLAYER,
+            "May not request more than MAX_CARDS_PER_PLAYER"
         );
         require(
             msg.value >= gp.properties.weiBuyIn * numCardsDesired,
