@@ -1,12 +1,12 @@
 import Alpine from 'alpinejs';
 import popularDestinations from './data/popularDestinations';
-import { ethers } from 'ethers';
+import BingoDApp from './BingoDApp';
 
 window.Alpine = Alpine;
-const metamaskProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
 
 console.log(popularDestinations);
 Alpine.store('dests', popularDestinations);
+Alpine.data('bingodapp', () => (BingoDApp));
 
 enum PageState {
     LandingPage,
@@ -41,43 +41,6 @@ Alpine.data('buttonClicked', () => ({
 
     click() {
         this.clicked = !this.clicked;
-    }
-}));
-
-Alpine.data('test', () => ({
-    open: false,
-
-    toggle() {
-        console.log("toggle");
-    }
-}));
-
-Alpine.data('wallet', () => ({
-    provider: null,
-    signer: null,
-    address: null,
-    isConnected: false,
-
-    async connect() {
-        console.log("connect");
-        this.provider = metamaskProvider;
-        console.log(this.provider);
-
-        await this.provider.send("eth_requestAccounts", [])
-
-        this.signer = this.provider.getSigner();
-        console.log(this.signer);
-
-        this.address = await this.signer.getAddress();
-        console.log(this.address);
-
-        this.isConnected = true;
-    },
-
-    async disconnect() {
-        await this.provider.close();
-        this.provider = null;
-        this.isConnected = false;
     }
 }));
 

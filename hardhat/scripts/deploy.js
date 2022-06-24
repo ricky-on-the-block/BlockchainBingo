@@ -10,12 +10,6 @@ let bingoBoardNFTContract;
 let bingoGameSBTContract;
 
  async function main() {
-    const network = await ethers.getDefaultProvider().getNetwork();
-    console.log("Network name=", network.name);
-    console.log("Network chain id=", network.chainId);
-
-    signers = await ethers.getSigners();
-
     const bingoGameSBT = await ethers.getContractFactory("BingoSBT");
     const bingoBoardNFT = await ethers.getContractFactory("BingoBoardNFT");
     const bingoGame = await ethers.getContractFactory("BingoGame");
@@ -49,8 +43,8 @@ let bingoGameSBTContract;
       "bingoGameFactoryContract: %s",
       bingoGameFactoryContract.address
     );
-    bingoBoardNFTContract.transferOwnership(bingoGameFactoryContract.address);
-    bingoGameSBTContract.transferOwnership(bingoGameFactoryContract.address);
+    await bingoBoardNFTContract.transferOwnership(bingoGameFactoryContract.address);
+    await bingoGameSBTContract.transferOwnership(bingoGameFactoryContract.address);
 
     const config = {
         bingoGameFactoryContract: bingoGameFactoryContract.address,
@@ -60,6 +54,14 @@ let bingoGameSBTContract;
       }
     
       fs.writeFileSync("../frontend/src/__config.json", JSON.stringify(config, null, 2));
+
+      // TODO: Move this somewhere more appropriate. This is only for initializing contracts
+      //       in order to test the front-end
+      for(let i = 0; i < 10; ++i){
+        await bingoGameFactoryContract.createGameProposal(ethers.utils.parseEther('0.01'), 15 + i, 2 + i, 1, {
+          value: ethers.utils.parseUnits("0.01", "ether")
+        });
+      }
   }
 
 

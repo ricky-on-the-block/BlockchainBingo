@@ -54,8 +54,8 @@ describe("All BingoGame Unit Tests", function () {
       "bingoGameFactoryContract: %s",
       bingoGameFactoryContract.address
     );
-    bingoBoardNFTContract.transferOwnership(bingoGameFactoryContract.address);
-    bingoGameSBTContract.transferOwnership(bingoGameFactoryContract.address);
+    await bingoBoardNFTContract.transferOwnership(bingoGameFactoryContract.address);
+    await bingoGameSBTContract.transferOwnership(bingoGameFactoryContract.address);
   });
 
   describe("BingoGameFactory Tests", function () {

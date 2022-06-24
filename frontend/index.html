@@ -18,7 +18,7 @@
 
     <script type="module" src="/src/alpinejs.ts"></script>
   </head>
-  <body class="bg-slate-900 antialiased">
+  <body x-data="bingodapp" class="bg-slate-900 antialiased">
     <!-- Navigation Bar -->
     <nav class="flex items-stretch justify-between px-6 py-8 shadow-xl shadow-white/5 lg:px-12">
       <div class="flex flex-row divide-x divide-gray-600">
@@ -27,7 +27,7 @@
         </button>
         <h1 x-data x-cloak x-show="$store.pageState.isDashboard()" x-transition class="my-2 pl-6 font-brand-headline text-gray-50 sm:text-2xl lg:text-3xl">dashboard</h1>
       </div>
-      <button x-data="wallet" x-on:click="await connect()" x-text="isConnected ? 'Connected' : 'Connect Wallet'" :class="isConnected ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" x-cloak x-show="$store.pageState.isDashboard()" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-6 py-2 font-brand-headline sm:text-2xl lg:text-3xl"></button>
+      <button x-on:click="await connect()" x-text="isConnected ? 'Connected' : 'Connect Wallet'" :class="isConnected ? 'bg-gradient-to-br from-green-500 to-lime-500 text-slate-900 hover:from-green-300 hover:to-lime-300' : 'hover:from-green-500 hover:to-lime-500 hover:bg-gradient-to-br text-white bg-purple-900'" x-cloak x-show="$store.pageState.isDashboard()" x-transition class="mr-16 rounded-full bg-gradient-to-bl from-indigo-700 to-pink-500 px-6 py-2 font-brand-headline sm:text-2xl lg:text-3xl"></button>
     </nav>
 
     <!-- Website Body -->
@@ -75,17 +75,18 @@
             <!-- List of Joinable Games -->
             <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               <!-- TODO: Repeat this for the number of active games -->
+              <template x-for="game in activeGameProposals">
               <li class="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white text-center shadow">
                 <div class="flex flex-1 flex-col p-8">
                   <span class="mx-auto inline-flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-900 to-pink-700">
-                    <span class="font-brand-headline text-3xl leading-none text-white">Game #100</span>
+                    <span class="font-brand-headline text-3xl leading-none text-white" x-html="'Game <br>#' + game.gameUUID.toNumber()"></span>
                   </span>
-                  <h3 class="text-green-900 tracking-wide mt-6 font-brand-headline text-lg  font-medium text-gray-900">Buy In: 0.1 ETH</h3>
+                  <h3 class="text-green-900 tracking-wide mt-6 font-brand-headline text-lg  font-medium text-gray-900" x-text="'Buy In: ' + game.weiBuyIn/(10 ** 18)"></h3>
                   <dl class="mt-1 flex flex-grow flex-col justify-between">
                     <dd class="text-sm text-gray-500">Max Cards: 6</dd>
-                    <dd class="text-sm text-gray-500">Draw Interval: 10 sec</dd>
+                    <dd class="text-sm text-gray-500" x-text="'Draw Interval: ' + game.drawTimeIntervalSec + ' sec'"></dd>
                     <dd class="mt-3">
-                      <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">Players: 8/12</span>
+                      <span class="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800" x-text="'Players: ' + game.numPlayersSignedUp + '/' + game.numPlayersRequired"></span>
                     </dd>
                   </dl>
                 </div>
@@ -103,8 +104,7 @@
                   </div>
                 </div>
               </li>
-
-              <!-- TODO: Iterate More Games... -->
+              </template>
             </ul>
           </div>
         </section>
