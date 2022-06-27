@@ -33,6 +33,7 @@ contract BingoBoardNFT is
         onlyOwner
         returns (uint256)
     {
+        console.log("safeMint");
         uint256 tokenId = _tokenIdCounter.current();
         _tokensByOwner[to].push(tokenId);
         _tokenIdCounter.increment();
@@ -41,7 +42,6 @@ contract BingoBoardNFT is
         // Now generate a board, and tie it to the tokenId
         generateBoard(_playerBoards[tokenId], gameUUID);
         
-
         return tokenId;
     }
 

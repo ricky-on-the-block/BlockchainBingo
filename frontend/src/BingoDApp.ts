@@ -4,8 +4,6 @@ import bingoGame from '../artifacts/contracts/contracts/BingoGame.sol/BingoGame.
 import bingoBoardNFT from '../artifacts/contracts/contracts/BingoBoardNFT.sol/BingoBoardNFT.json';
 import contractAddresses from './__config.json';
 
-const MetaMaskProvider = new ethers.providers.Web3Provider(window.ethereum, "any");
-
 // TODO: Add all the contracts and logic in this single data object. Any function that
 //       makes a call to the chain to read the data will need to be `async`
 //       Also, you need commas in between every function definition and variable
@@ -24,13 +22,12 @@ let BingoDApp = {
     bingoGameCloneAddresses: [],
     gameUUIDToAddress: {},
 
-
     async connect() {
         console.log("connect");
-        this.provider = MetaMaskProvider;
+        this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");;
         console.log(this.provider);
 
-        await MetaMaskProvider.send("eth_requestAccounts", [])
+        await this.provider.send("eth_requestAccounts", [])
 
         this.wallet = this.provider.getSigner();
         console.log(this.wallet);
@@ -48,6 +45,12 @@ let BingoDApp = {
 
         this.bingoBoardNFTContract = new ethers.Contract(contractAddresses.bingoBoardNFTContract, bingoBoardNFT.abi, this.provider);   
         console.log(this.bingoBoardNFTContract);
+
+        // TODO: Get all Games the player is a part of
+        // console.log(this.bingoGameFactoryContract.filters.GameCreated(null, null, null, null));
+        this.bingoGameFactoryContract.on('GameCreated', (gameUUID, bingoGameContract, jackpot, players) => {
+            console.log(`${gameUUID} ${bingoGameContract} ${jackpot} ${players}`);
+        })
 
         let bingoBoardBalance = await this.bingoBoardNFTContract.balanceOf(this.address);
         console.log("Total number of bingo cards owned %s",bingoBoardBalance.toNumber());
