@@ -53,7 +53,7 @@ let bingoGameSBTContract;
         bingoGameSBTContract: bingoGameSBTContract.address
       }
     
-      fs.writeFileSync("../frontend/src/__config.json", JSON.stringify(config, null, 2));
+      fs.writeFileSync("../frontendjs/data/__config.json", JSON.stringify(config, null, 2));
 
       // TODO: Move this somewhere more appropriate. This is only for initializing contracts
       //       in order to test the front-end

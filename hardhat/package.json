@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "format": "npx prettier --write 'contracts/**/*.sol' 'test/*.js' 'scripts/*.js'",
-    "build-copy": "hh clean && hh compile && mkdir -p ../frontend/artifacts/contracts && cp -r artifacts/contracts ../frontend/artifacts/contracts"
+    "build-copy": "hh clean && hh compile && mkdir -p ../frontendjs/data/artifacts/contracts && cp -r artifacts/contracts/* ../frontendjs/data/artifacts/contracts/"
   },
   "repository": {
     "type": "git",
