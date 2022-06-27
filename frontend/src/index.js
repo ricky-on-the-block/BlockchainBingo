@@ -111,29 +111,29 @@ async function joinGameProposal() {
     console.log(BingoGameFactoryContract.functions);
     const value = {value: ethers.utils.parseUnits("0.01", "ether")};
 
-    tx0 = await BingoGameFactoryContract.connect(validSigner3).joinGameProposal(3,1, value);
-    tx0.wait();
+    // tx0 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(2,1, value);
+    // tx0.wait();
 
     // tx1 = await BingoGameFactoryContract.connect(validSigner1).joinGameProposal(2,1, value);
     // tx1.wait();
     // tx2 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(2,1, value);
     // tx2.wait();
     
-    // tx3 = await BingoGameFactoryContract.connect(validSigner1).joinGameProposal(3,1, value);
-    // tx3.wait();
-    // tx4 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(3,1, value);
-    // tx4.wait();
-    // tx5 = await BingoGameFactoryContract.connect(validSigner3).joinGameProposal(3,1, value);
-    // tx5.wait();
+    tx3 = await BingoGameFactoryContract.connect(validSigner1).joinGameProposal(3,1, value);
+    tx3.wait();
+    tx4 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(3,1, value);
+    tx4.wait();
+    tx5 = await BingoGameFactoryContract.connect(validSigner3).joinGameProposal(3,1, value);
+    tx5.wait();
 
-    // tx6 = await BingoGameFactoryContract.connect(validSigner1).joinGameProposal(4,1, value);
-    // tx6.wait();
-    // tx7 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(4,1, value);
-    // tx7.wait();
-    // tx8 = await BingoGameFactoryContract.connect(validSigner3).joinGameProposal(4,1, value);
-    // tx8.wait();
-    // tx9 = await BingoGameFactoryContract.connect(validSigner4).joinGameProposal(4,1, value);
-    // tx9.wait();
+    tx6 = await BingoGameFactoryContract.connect(validSigner1).joinGameProposal(4,1, value);
+    tx6.wait();
+    tx7 = await BingoGameFactoryContract.connect(validSigner2).joinGameProposal(4,1, value);
+    tx7.wait();
+    tx8 = await BingoGameFactoryContract.connect(validSigner3).joinGameProposal(4,1, value);
+    tx8.wait();
+    tx9 = await BingoGameFactoryContract.connect(validSigner4).joinGameProposal(4,1, value);
+    tx9.wait();
     // TODO: Turn these game proposals into actual wallets with valid private keys
     // HOWEVER: We don't need to do this part, and have already tested this flow in our
     //          HH tests. Instead, we just want to expose all the functionality we will
