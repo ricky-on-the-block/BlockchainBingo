@@ -11,8 +11,8 @@ export let gameFactoryStore = {
 
         async connect(wallet) {
             this.contract = new ethers.Contract(contractAddresses.bingoGameFactoryContract, bingoGameFactoryJson.abi, wallet); 
-            console.log(`this.contract: ${this.contract}`);
-
+            console.log("this.contract:");
+            console.log(this.contract);
             await this.updateActiveGameProposals();
         },
 
