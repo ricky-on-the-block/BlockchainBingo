@@ -113,7 +113,7 @@ contract BingoGame is Initializable, IBingoGame {
         // console.log("Owner NFT: %s === msg.sender : %s", bingoBoardNFT.ownerOf(tokenId), msg.sender);
         require(
             !hasBoardWon[tokenId],
-            "Cannot claim bingo for multiple boards"
+            "Cannot claim bingo multiple times for the same board"
         );
         require(
             bingoBoardNFT.ownerOf(tokenId) == msg.sender,
@@ -203,6 +203,11 @@ contract BingoGame is Initializable, IBingoGame {
         returns (uint8[] memory)
     {
         return drawnNumbers.values();
+    }
+
+    // -------------------------------------------------------------
+    function isGameComplete() external view isInitialized returns(bool) {
+        return block.timestamp <= (firstBingoTimeStamp + BINGO_TIE_INTERVAL_SEC);
     }
 
     // -------------------------------------------------------------

@@ -23,11 +23,9 @@ contract BingoBoardNFT is
     // Mapping from token ID to PlayerBoard
     mapping(uint256 => PlayerBoard) private _playerBoards;
 
-    // Mapping from owner to tokenIDs
-    mapping(address => uint256[]) private _tokensByOwner;
-
     constructor() ERC721("BingoBoardNFT", "BINGOBOARD") {}
 
+    // -------------------------------------------------------------
     function safeMint(address to, uint256 gameUUID)
         public
         onlyOwner
@@ -35,10 +33,9 @@ contract BingoBoardNFT is
     {
         console.log("safeMint");
         uint256 tokenId = _tokenIdCounter.current();
-        _tokensByOwner[to].push(tokenId);
-        _tokenIdCounter.increment();
         _safeMint(to, tokenId);
-
+        _tokenIdCounter.increment();
+        
         // Now generate a board, and tie it to the tokenId
         generateBoard(_playerBoards[tokenId], gameUUID);
         
@@ -77,16 +74,18 @@ contract BingoBoardNFT is
         }
     }
 
-        // -------------------------------------------------------------
-    function getListOfTokenIDs(address owner)
+    // -------------------------------------------------------------
+    function getOwnedTokenIDs()
         external
         view
         returns (uint256[] memory pbData)
     {
-        uint256 numNFTs = ERC721.balanceOf(owner);
+        uint256 numNFTs = ERC721.balanceOf(msg.sender);
         pbData = new uint256[](numNFTs);
 
-        pbData = _tokensByOwner[owner];
+        for(uint i = 0; i < numNFTs; i++) {
+            pbData[i] = tokenOfOwnerByIndex(msg.sender, i);
+        }
     }
 
     // -------------------------------------------------------------
@@ -101,6 +100,7 @@ contract BingoBoardNFT is
         console.log(boardStr);
     }
 
+    // -------------------------------------------------------------
     // The following functions are overrides required by Solidity.
     function _beforeTokenTransfer(
         address from,
@@ -110,6 +110,7 @@ contract BingoBoardNFT is
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
+    // -------------------------------------------------------------
     function supportsInterface(bytes4 interfaceId)
         public
         view

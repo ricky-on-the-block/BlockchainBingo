@@ -41,10 +41,15 @@ contract BingoGameFactory {
     // Mapping of gameUUID to GameProposal
     mapping(uint256 => GameProposal) private gameProposals;
 
+    // Add a list of all clones to easily read from the front end, because
+    // using events in AlpineJS is a pain
+    address[] public createdGames;
+
     // List of all games waiting to be started
     using EnumerableSet for EnumerableSet.UintSet;
     EnumerableSet.UintSet private activeGameUUIDs;
 
+    // -------------------------------------------------------------
     event GameProposed(
         uint256 gameUUID,
         uint256 weiBuyIn,
@@ -57,6 +62,7 @@ contract BingoGameFactory {
         address[] players
     );
 
+    // -------------------------------------------------------------
     constructor(
         address _bingoGame,
         address _bingoBoardNFT,
@@ -67,8 +73,7 @@ contract BingoGameFactory {
         bingoSBT = IBingoSBT(_bingoSBT);
     }
 
-    // External functions
-    // ...
+    // -------------------------------------------------------------
     function createGameProposal(
         uint256 weiBuyIn,
         uint8 drawTimeIntervalSec,
@@ -122,6 +127,7 @@ contract BingoGameFactory {
         );
     }
 
+    // -------------------------------------------------------------
     function joinGameProposal(uint256 gameUUID, uint8 numCardsDesired)
         external
         payable
@@ -177,6 +183,7 @@ contract BingoGameFactory {
                 gp.properties.gameUUID,
                 gp.properties.drawTimeIntervalSec
             );
+            createdGames.push(deployedClone);
 
             bingoSBT.addOwner(deployedClone);
 
@@ -191,7 +198,7 @@ contract BingoGameFactory {
         }
     }
 
-    // External functions that are view
+    // -------------------------------------------------------------
     function getActiveGameProposals()
         external
         view
@@ -205,16 +212,4 @@ contract BingoGameFactory {
                 .properties;
         }
     }
-
-    // External functions that are pure
-    // ...
-
-    // Public functions
-    // ...
-
-    // Internal functions
-    // ...
-
-    // Private functions
-    // ...
 }
