@@ -8,12 +8,16 @@ export let gameFactoryStore = {
         contract: undefined,
         address: undefined,
         activeGameProposals: [],
+        gameCloneAddresses: [],
 
         async connect(wallet) {
             this.contract = new ethers.Contract(contractAddresses.bingoGameFactoryContract, bingoGameFactoryJson.abi, wallet); 
             console.log("this.contract:");
             console.log(this.contract);
+
+            // Read initial state of games on chain on connect
             await this.updateActiveGameProposals();
+            await this.getGameCloneAddresses();
         },
 
         async updateActiveGameProposals() {
@@ -29,6 +33,13 @@ export let gameFactoryStore = {
             console.log(weiBuyIn);
             
             await this.contract.joinGameProposal(gameUUID, numCardsDesired, {value: weiBuyIn.mul(numCardsDesired)});
+        },
+
+        // TODO: Decide between this approach and reading all player-owned NFTs and sorting by game
+        async getGameCloneAddresses() {
+            console.log("gameFactory: getRunningGameAddresses()");
+            this.gameCloneAddresses = await this.contract.getCreatedGames();
+            console.log(this.gameCloneAddresses);
         },
     }
 };

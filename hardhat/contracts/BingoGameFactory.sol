@@ -212,4 +212,14 @@ contract BingoGameFactory {
                 .properties;
         }
     }
+    
+    // -------------------------------------------------------------
+    function getCreatedGames()
+        external
+        view
+        returns (address[] memory _createdGames)
+    {
+        _createdGames = new address[](createdGames.length);
+        _createdGames = createdGames;
+    }
 }
