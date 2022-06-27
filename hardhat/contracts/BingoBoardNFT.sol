@@ -23,6 +23,9 @@ contract BingoBoardNFT is
     // Mapping from token ID to PlayerBoard
     mapping(uint256 => PlayerBoard) private _playerBoards;
 
+    // Mapping from owner to tokenIDs
+    mapping(address => uint256[]) private _tokensByOwner;
+
     constructor() ERC721("BingoBoardNFT", "BINGOBOARD") {}
 
     function safeMint(address to, uint256 gameUUID)
@@ -31,11 +34,13 @@ contract BingoBoardNFT is
         returns (uint256)
     {
         uint256 tokenId = _tokenIdCounter.current();
+        _tokensByOwner[to].push(tokenId);
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
 
         // Now generate a board, and tie it to the tokenId
         generateBoard(_playerBoards[tokenId], gameUUID);
+        
 
         return tokenId;
     }
@@ -70,6 +75,18 @@ contract BingoBoardNFT is
         for (uint256 i = 0; i < numNFTs; i++) {
             pbData[i] = _playerBoards[tokenByIndex(i)].data;
         }
+    }
+
+        // -------------------------------------------------------------
+    function getListOfTokenIDs(address owner)
+        external
+        view
+        returns (uint256[] memory pbData)
+    {
+        uint256 numNFTs = ERC721.balanceOf(owner);
+        pbData = new uint256[](numNFTs);
+
+        pbData = _tokensByOwner[owner];
     }
 
     // -------------------------------------------------------------
