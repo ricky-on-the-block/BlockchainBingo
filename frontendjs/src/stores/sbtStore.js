@@ -3,16 +3,17 @@ import contractJson from '../../data/artifacts/contracts/BingoSBT.sol/BingoSBT.j
 import contractAddresses from '../../data/__config.json';
 
 export let sbtStore = {
-    name: 'sbtStore',
-    obj: {
-        contract: undefined,
-        address: undefined,
+  name: 'sbtStore',
+  obj: {
+    contract: undefined,
+    address: undefined,
 
-        async connect(wallet) {
-            this.contract = new ethers.Contract(contractAddresses.bingoGameSBTContract, contractJson.abi, wallet); 
-            console.log("this.contract:");
-            console.log(this.contract);        },
+    async connect(wallet) {
+      this.contract = new ethers.Contract(contractAddresses.bingoGameSBTContract, contractJson.abi, wallet);
+      console.log('this.contract:');
+      console.log(this.contract);
+    },
 
-        // TODO: Add functions as they are needed for calling this contract
-    }
+    // TODO: Add functions as they are needed for calling this contract
+  },
 };

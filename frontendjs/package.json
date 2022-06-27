@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "npx prettier --write 'index.html' 'src/*.js'"
+    "format": "npx prettier --write 'index.html' 'src/*/*.js'"
   },
   "devDependencies": {
     "@metamask/detect-provider": "^1.2.0",
