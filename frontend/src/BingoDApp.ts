@@ -24,7 +24,7 @@ let BingoDApp = {
 
     async connect() {
         console.log("connect");
-        this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");;
+        this.provider = new ethers.providers.Web3Provider(window.ethereum, "any");
         console.log(this.provider);
 
         await this.provider.send("eth_requestAccounts", [])

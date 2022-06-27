@@ -4,6 +4,8 @@ import BingoDApp from './BingoDApp';
 
 window.Alpine = Alpine;
 
+// INITIALIZE ALL CONTRACTS HERE
+
 console.log(popularDestinations);
 Alpine.store('dests', popularDestinations);
 Alpine.data('bingodapp', () => (BingoDApp));
@@ -16,6 +18,7 @@ Alpine.store('pageState', {
     pageState: PageState.LandingPage,
 
     isLanding() {
+        test();
         console.log("isLanding() called");
         return this.pageState === PageState.LandingPage;
     },
@@ -35,6 +38,11 @@ Alpine.store('pageState', {
         return this.pageState = PageState.Dashboard;
     }
 });
+
+function test() {
+    console.log("TEST WEEE TEST");
+    console.log(Alpine.store('pageState').isDashboard());
+}
 
 Alpine.data('buttonClicked', () => ({
     clicked: false,
