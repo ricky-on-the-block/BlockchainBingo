@@ -1,0 +1,24 @@
+What do I want to do as far as code structuring?
+
+Let's start with the first on-chain data that we need.
+-- GAME PROPOSALS -- 
+What do I need for rendering?
+1. gameUUID
+2. weiBuyIn
+3. drawTimeIntervalSec
+4. numPlayersRequired
+5. numPlayersSignedUp
+
+What do I need for functionality?
+1. A 'Join' function that does the transaction for us easily
+
+PREREQUISITES:
+1. metamask provider is active
+2. metamask wallets have been connected
+3. GameFactoryContract has been initialized
+^ work on this functionality first as a globals object
+
+-- ACTIVE GAMES --
+What do I need for rendering?
+1. gameUUID
+2.
