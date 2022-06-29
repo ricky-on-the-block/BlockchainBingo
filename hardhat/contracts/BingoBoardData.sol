@@ -16,6 +16,7 @@ contract BingoBoardData {
     }
 
     struct PlayerBoardData {
+        uint256 tokenId;
         uint256 gameUUID;
         uint8[5] bColumn;
         uint8[5] iColumn;
@@ -122,12 +123,12 @@ contract BingoBoardData {
 
     // RANDOMLY GENERATE THE PLAYER BOARD
     // -------------------------------------------------------------
-    function generateBoard(PlayerBoard storage self, uint256 gameUUID)
+    function generateBoard(uint256 tokenId, PlayerBoard storage self, uint256 gameUUID)
         internal
     {
         // console.log("generateBoard()");
-
         self.data.gameUUID = gameUUID;
+        self.data.tokenId = tokenId;
 
         generateColumn(self, self.data.bColumn, B_OFFSET);
         generateColumn(self, self.data.iColumn, I_OFFSET);

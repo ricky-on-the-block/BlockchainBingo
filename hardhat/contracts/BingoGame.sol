@@ -15,6 +15,14 @@ uint8 constant MAX_DRAWING_NUM = 75;
 uint256 constant BINGO_TIE_INTERVAL_SEC = 60 * 3; // We allows a 3 minute window for ties
 
 contract BingoGame is Initializable, IBingoGame {
+    event NumberDrawn(uint256 gameUUID, uint8 number);
+    event BingoClaimed(uint256 gameUUID, address indexed winner);
+    event WinningsDistributed(
+        uint256 gameUUID,
+        address indexed winner,
+        uint256 awardAmount
+    );
+
     using EnumerableByteSet for EnumerableByteSet.Uint8Set;
     using LibSimpleRNG for LibSimpleRNG.SimpleRNGSeed;
 
@@ -152,6 +160,9 @@ contract BingoGame is Initializable, IBingoGame {
 
             emit BingoClaimed(gameUUID, msg.sender);
             console.log("Total Winners Signed up: %s", totalPlayerBoardsWon);
+        }
+        else {
+            revert("Claim Bingo Failed, win condition not met");
         }
     }
 

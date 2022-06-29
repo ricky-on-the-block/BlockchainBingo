@@ -20,6 +20,8 @@ contract BingoBoardNFT is
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
+    event BingoBoardNFTMinted(uint256 indexed gameUUID, address indexed to, uint256 indexed tokenId);
+
     // Mapping from token ID to PlayerBoard
     mapping(uint256 => PlayerBoard) private _playerBoards;
 
@@ -37,7 +39,9 @@ contract BingoBoardNFT is
         _tokenIdCounter.increment();
         
         // Now generate a board, and tie it to the tokenId
-        generateBoard(_playerBoards[tokenId], gameUUID);
+        generateBoard(tokenId, _playerBoards[tokenId], gameUUID);
+
+        emit BingoBoardNFTMinted(gameUUID, to, tokenId);
         
         return tokenId;
     }
@@ -70,7 +74,7 @@ contract BingoBoardNFT is
         pbData = new PlayerBoardData[](numNFTs);
 
         for (uint256 i = 0; i < numNFTs; i++) {
-            pbData[i] = _playerBoards[tokenByIndex(i)].data;
+            pbData[i] = _playerBoards[tokenOfOwnerByIndex(msg.sender, i)].data;
         }
     }
 

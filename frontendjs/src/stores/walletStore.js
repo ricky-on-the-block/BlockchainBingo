@@ -1,9 +1,6 @@
 import Alpine from 'alpinejs';
 import { ethers } from 'ethers';
-import { boardNFTStore } from './boardNFTStore';
-import { gameFactoryStore } from './gameFactoryStore';
-import { gameStore } from './gameStore';
-import { sbtStore } from './sbtStore';
+import { globalStore } from './globalStore';
 
 export let walletStore = {
   name: 'wallet',
@@ -22,10 +19,7 @@ export let walletStore = {
         this.walletAddress = await this.wallet.getAddress();
 
         // Now, setup global/constant contracts with this wallet
-        Alpine.store(gameFactoryStore.name).connect(this.wallet);
-        Alpine.store(gameStore.name).connect(this.wallet);
-        Alpine.store(boardNFTStore.name).connect(this.wallet);
-        Alpine.store(sbtStore.name).connect(this.wallet);
+        Alpine.store(globalStore.name).connect(this.wallet);
 
         this.isConnected = true;
         console.log('Metamask Connected!');

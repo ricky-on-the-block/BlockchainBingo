@@ -9,7 +9,15 @@ let bingoGameContract;
 let bingoBoardNFTContract;
 let bingoGameSBTContract;
 
+async function incrementBlockChainTime(timeStampIncrement) {
+  const currentBlockNumber = await ethers.provider.getBlockNumber();
+  const currentTimeStamp = (await ethers.provider.getBlock(currentBlockNumber)).timestamp;
+  const increasedTimeStamp = currentTimeStamp + timeStampIncrement;
+  await ethers.provider.send("evm_mine", [increasedTimeStamp]);
+}
+
  async function main() {
+    let signers = await ethers.getSigners();
     const bingoGameSBT = await ethers.getContractFactory("BingoSBT");
     const bingoBoardNFT = await ethers.getContractFactory("BingoBoardNFT");
     const bingoGame = await ethers.getContractFactory("BingoGame");
@@ -62,7 +70,19 @@ let bingoGameSBTContract;
           value: ethers.utils.parseUnits("0.01", "ether")
         });
       }
-  }
+
+      await bingoGameFactoryContract.connect(signers[1]).joinGameProposal(0, 1, { value: ethers.utils.parseEther("0.01") });
+      await bingoGameFactoryContract.connect(signers[11]).joinGameProposal(2, 2, { value: ethers.utils.parseEther("0.02") });
+
+      await bingoGameFactoryContract.connect(signers[9]).joinGameProposal(1, 2, { value: ethers.utils.parseEther("0.02") });
+      
+      for(let i = 0; i < 55; i++) {
+        await incrementBlockChainTime(15);
+        await bingoGameContract
+          .attach("0x3f3c0fa2f1998a358a882cd187a13990afde12f1")
+          .drawNumber();
+      }
+    }
 
 
   main()

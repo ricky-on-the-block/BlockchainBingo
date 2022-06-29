@@ -21,4 +21,30 @@ PREREQUISITES:
 -- ACTIVE GAMES --
 What do I need for rendering?
 1. gameUUID
-2.
+2. 
+
+WHAT'S THE CURRENT PROBLEM
+- I can't dynamically update an Alpine Data for every board. Partially because I can't make an event listener,
+  but it looks like I can manually parse an event. We want an event listener so that it is dynamically
+
+ALTERNATIVE:
+Read everything on an interval and edit a global store. What would that look like?
+The current UI works okay for the game proposals, but for their UI to update, that would also need to be fixed
+
+What's an alternative to the design I went with?
+GLOBAL EVERYTHING IN ONE STORE
+LISTENERS UPDATE THAT STORE
+GLOBAL CONTRACTS GET SET FOR USE OUTSIDE THE STORE ON WALLET CONNECT
+
+How do I pull this off?
+1. Game Proposal Board is a sorted array, and gets updated on events: GameProposed, GameCreated - all data is updated accordingly. Use associative array with gameUUID for lookup?
+
+What states do I need to be dynamically updated for the UI?
+1. Game Proposals List -- this can be a set, because the player should see all of them
+2. Actively Running Games List -- this can 
+-> 2.a NumbersDrawn
+-> 2.b Boards for that game
+
+These can both be implemented using two things:
+- An array of gameUUIDs
+- A mapping of the data using gameUUID as the index (associative array)

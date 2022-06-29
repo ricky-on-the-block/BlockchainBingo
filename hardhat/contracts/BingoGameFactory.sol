@@ -8,6 +8,7 @@ import "contracts/IBingoGame.sol";
 import "contracts/IBingoSBT.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract BingoGameFactory {
     uint256 public constant MIN_WEI_BUY_IN = 0.001 ether;
@@ -25,7 +26,7 @@ contract BingoGameFactory {
         uint256 gameUUID;
         uint256 weiBuyIn;
         uint256 totalCardCount;
-        uint8 drawTimeIntervalSec;
+        uint8 minDrawTimeIntervalSec;
         uint8 numPlayersRequired;
         uint8 numPlayersSignedUp;
         address[] playersSignedUp;
@@ -36,7 +37,8 @@ contract BingoGameFactory {
         mapping(address => uint8) playersCardCount;
     }
 
-    uint256 private gamesUUIDCounter = 1;
+    using Counters for Counters.Counter;
+    Counters.Counter private gamesUUIDCounter;
 
     // Mapping of gameUUID to GameProposal
     mapping(uint256 => GameProposal) private gameProposals;
@@ -44,16 +46,22 @@ contract BingoGameFactory {
     // Add a list of all clones to easily read from the front end, because
     // using events in AlpineJS is a pain
     address[] public createdGames;
+    mapping(uint256 => address) public gameClonesByUUID;
 
     // List of all games waiting to be started
     using EnumerableSet for EnumerableSet.UintSet;
-    EnumerableSet.UintSet private activeGameUUIDs;
+    EnumerableSet.UintSet private proposedGameUUIDs;
 
     // -------------------------------------------------------------
     event GameProposed(
         uint256 gameUUID,
         uint256 weiBuyIn,
-        uint8 numPlayersRequired
+        uint8 numPlayersRequired,
+        uint8 minDrawTimeIntervalSec
+    );
+    event PlayerJoinedProposal(
+        uint256 gameUUID,
+        address player
     );
     event GameCreated(
         uint256 gameUUID,
@@ -76,15 +84,15 @@ contract BingoGameFactory {
     // -------------------------------------------------------------
     function createGameProposal(
         uint256 weiBuyIn,
-        uint8 drawTimeIntervalSec,
+        uint8 minDrawTimeIntervalSec,
         uint8 numPlayersRequired,
         uint8 numCardsDesired
     ) external payable {
         console.log("createGameProposal()");
         require(weiBuyIn >= MIN_WEI_BUY_IN, "MIN_WEI_BUY_IN not met");
         require(
-            drawTimeIntervalSec <= MAX_DRAW_INTERVAL_SEC,
-            "drawTimeIntervalSec > MAX_DRAW_INTERVAL_SEC"
+            minDrawTimeIntervalSec <= MAX_DRAW_INTERVAL_SEC,
+            "minDrawTimeIntervalSec > MAX_DRAW_INTERVAL_SEC"
         );
         require(
             numPlayersRequired >= MIN_NUM_PLAYERS,
@@ -95,7 +103,7 @@ contract BingoGameFactory {
             "Value must be >= weiBuyIn * numCardsDesired"
         );
 
-        GameProposal storage gp = gameProposals[gamesUUIDCounter];
+        GameProposal storage gp = gameProposals[gamesUUIDCounter.current()];
 
         require(
             numCardsDesired <= MAX_CARDS_PER_PLAYER,
@@ -103,10 +111,9 @@ contract BingoGameFactory {
         );
 
         // Initialize the GameProposal
-        gp.properties.gameUUID = gamesUUIDCounter++;
+        gp.properties.gameUUID = gamesUUIDCounter.current();
         gp.properties.weiBuyIn = weiBuyIn;
-        gp.properties.weiBuyIn = weiBuyIn;
-        gp.properties.drawTimeIntervalSec = drawTimeIntervalSec;
+        gp.properties.minDrawTimeIntervalSec = minDrawTimeIntervalSec;
         gp.properties.numPlayersSignedUp = 1; // creation only has 1 player
         gp.properties.numPlayersRequired = numPlayersRequired;
         gp.properties.playersSignedUp.push(msg.sender);
@@ -117,14 +124,17 @@ contract BingoGameFactory {
             bingoBoardNFT.safeMint(msg.sender, gp.properties.gameUUID);
         }
 
-        // Add the newly created gameProposal to the activeGameUUIDs set
-        activeGameUUIDs.add(gp.properties.gameUUID);
+        // Add the newly created gameProposal to the proposedGameUUIDs set
+        proposedGameUUIDs.add(gp.properties.gameUUID);
 
         emit GameProposed(
             gp.properties.gameUUID,
             gp.properties.weiBuyIn,
-            gp.properties.numPlayersRequired
+            gp.properties.numPlayersRequired,
+            gp.properties.minDrawTimeIntervalSec
         );
+
+        gamesUUIDCounter.increment();
     }
 
     // -------------------------------------------------------------
@@ -134,7 +144,7 @@ contract BingoGameFactory {
     {
         console.log("joinGameProposal()");
         require(
-            activeGameUUIDs.contains(gameUUID),
+            proposedGameUUIDs.contains(gameUUID),
             "Must select an active gameProposal"
         );
 
@@ -153,6 +163,7 @@ contract BingoGameFactory {
         // Only increment numPlayersSignedUp if it's a new player
         if (gp.playersCardCount[msg.sender] == 0) {
             gp.properties.playersSignedUp.push(msg.sender);
+            emit PlayerJoinedProposal(gameUUID, msg.sender);
         }
         gp.playersCardCount[msg.sender] += numCardsDesired;
         gp.properties.totalCardCount += numCardsDesired;
@@ -181,9 +192,10 @@ contract BingoGameFactory {
                 address(bingoBoardNFT),
                 address(bingoSBT),
                 gp.properties.gameUUID,
-                gp.properties.drawTimeIntervalSec
+                gp.properties.minDrawTimeIntervalSec
             );
             createdGames.push(deployedClone);
+            gameClonesByUUID[gp.properties.gameUUID] = deployedClone;
 
             bingoSBT.addOwner(deployedClone);
 
@@ -194,7 +206,8 @@ contract BingoGameFactory {
                 gp.properties.playersSignedUp
             );
 
-            activeGameUUIDs.remove(gp.properties.gameUUID);
+            proposedGameUUIDs.remove(gp.properties.gameUUID);
+            delete gameProposals[gameUUID];
         }
     }
 
@@ -204,11 +217,11 @@ contract BingoGameFactory {
         view
         returns (GameProposalProperties[] memory gameProposalProperties)
     {
-        uint256 len = activeGameUUIDs.length();
+        uint256 len = proposedGameUUIDs.length();
         gameProposalProperties = new GameProposalProperties[](len);
 
         for (uint256 i = 0; i < len; i++) {
-            gameProposalProperties[i] = gameProposals[activeGameUUIDs.at(i)]
+            gameProposalProperties[i] = gameProposals[proposedGameUUIDs.at(i)]
                 .properties;
         }
     }

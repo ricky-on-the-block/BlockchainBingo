@@ -2,14 +2,6 @@
 pragma solidity ^0.8.9;
 
 interface IBingoGame {
-    event NumberDrawn(uint256 gameUUID, uint8 number);
-    event BingoClaimed(uint256 gameUUID, address indexed winner);
-    event WinningsDistributed(
-        uint256 gameUUID,
-        address indexed winner,
-        uint256 awardAmount
-    );
-
     function init(
         address bingoBoardNFT_,
         address bingoSBT_,
