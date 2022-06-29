@@ -1,0 +1,184 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IBingoBoardNFT",
+  "sourceName": "contracts/IBingoBoardNFT.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getBoardAsString",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "boardStr",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPlayerBoardData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "gameUUID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "bColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "iColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "nColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "gColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "oColumn",
+              "type": "uint8[5]"
+            }
+          ],
+          "internalType": "struct BingoBoardData.PlayerBoardData",
+          "name": "pbData",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPlayerBoardsData",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "tokenId",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "gameUUID",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "bColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "iColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "nColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "gColumn",
+              "type": "uint8[5]"
+            },
+            {
+              "internalType": "uint8[5]",
+              "name": "oColumn",
+              "type": "uint8[5]"
+            }
+          ],
+          "internalType": "struct BingoBoardData.PlayerBoardData[]",
+          "name": "pbData",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gameUUID",
+          "type": "uint256"
+        }
+      ],
+      "name": "isNFTInGame",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "gameUUID",
+          "type": "uint256"
+        }
+      ],
+      "name": "safeMint",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

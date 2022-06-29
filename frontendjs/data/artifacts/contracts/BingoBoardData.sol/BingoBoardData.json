@@ -1,0 +1,16 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "BingoBoardData",
+  "sourceName": "contracts/BingoBoardData.sol",
+  "abi": [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    }
+  ],
+  "bytecode": "0x6080604052348015600f57600080fd5b50426000800181905550603f8060266000396000f3fe6080604052600080fdfea2646970667358221220da0e246f06d98043e6959cff6762fe62dada9363835c30b3fd4dc6c429c8b5da64736f6c63430008090033",
+  "deployedBytecode": "0x6080604052600080fdfea2646970667358221220da0e246f06d98043e6959cff6762fe62dada9363835c30b3fd4dc6c429c8b5da64736f6c63430008090033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

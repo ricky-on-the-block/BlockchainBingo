@@ -3,9 +3,9 @@
 */coverage
 */coverage.json
 */typechain
+.env
 
 #Hardhat files
 hardhat/cache
 hardhat/artifacts
 node_modules
-frontendjs/data

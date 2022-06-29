@@ -30,5 +30,8 @@
     "prettier": "^2.7.0",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
     "web3modal": "^1.9.8"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1"
   }
 }
